@@ -337,7 +337,7 @@ const $=id=>document.getElementById(id);
 const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
 let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
 const voices=new Map(),activeNotes=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
-const reactive={nodes:[],blobs:[],pitchPoints:new Map(),lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0,chordQuality:'single',chordSince:0,previousRoot:null,transitionInterval:0,transitionPulse:0,eventSeed:1};
+const reactive={nodes:[],blobs:[],pitchPoints:new Map(),lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0,chordQuality:'single',chordSince:0,previousRoot:null,transitionInterval:0,transitionPulse:0,eventSeed:1,lastNoteAt:0,speedEnergy:0};
 const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const profiles=[
  ['maj13','maj13',[0,4,7,11,2,5,9]],['13','13',[0,4,7,10,2,5,9]],['m13','m13',[0,3,7,10,2,5,9]],
@@ -936,6 +936,8 @@ function panic(){
 }
 function recordMidiNote(note,velocity){
  const now=performance.now();
+ const noteGap=reactive.lastNoteAt?now-reactive.lastNoteAt:800;reactive.lastNoteAt=now;
+ reactive.speedEnergy=Math.min(1.4,reactive.speedEnergy*.72+Math.max(0,1-noteGap/520)*.72+velocity*.18);
  midiTrail.push({note,velocity,time:now,duration:900+velocity*1700});
  if(midiTrail.length>360)midiTrail.splice(0,midiTrail.length-360);
  reactive.targetEnergy=Math.min(1.15,reactive.targetEnergy+.12+velocity*.38);
@@ -1287,20 +1289,21 @@ function updatePitchPoints(now){
  for(const [note,velocity] of active){
   let point=reactive.pitchPoints.get(note);
   if(!point){
-   const angle=(note%12)/12*Math.PI*2-Math.PI/2,radius=.31+((Math.floor(note/12)%3)-1)*.045;
-   point={note,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,vx:0,vy:0,hue:style.hue+(note%12)*4,velocity,born:now,life:0,phase:seededChaos(note)*Math.PI};
+   const angle=(note%12)/12*Math.PI*2-Math.PI/2,radius=.64+((Math.floor(note/12)%3)-1)*.065;
+   point={note,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,vx:seededChaos(note,2)*.004,vy:seededChaos(note,3)*.004,hue:style.hue+(note%12)*4,velocity,born:now,life:0,phase:seededChaos(note)*Math.PI,releasedAt:0,shapeSeed:reactive.eventSeed+note*19};
    reactive.pitchPoints.set(note,point);
   }
-  point.velocity=velocity;point.life+=(1-point.life)*.12;
+  point.velocity=velocity;point.life+=(1-point.life)*.12;point.releasedAt=0;
  }
  const activeSet=new Set(active.map(([note])=>note));
- for(const point of reactive.pitchPoints.values())if(!activeSet.has(point.note))point.life*=.94;
- for(const [note,point] of reactive.pitchPoints)if(point.life<.015)reactive.pitchPoints.delete(note);
+ for(const point of reactive.pitchPoints.values())if(!activeSet.has(point.note)){if(!point.releasedAt)point.releasedAt=now;point.life*=.988}
+ for(const [note,point] of reactive.pitchPoints)if(point.life<.012||now-(point.releasedAt||now)>9000)reactive.pitchPoints.delete(note);
  const held=[...reactive.pitchPoints.values()].filter(point=>activeSet.has(point.note));
  for(const point of reactive.pitchPoints.values()){
-  const angle=(point.note%12)/12*Math.PI*2-Math.PI/2,ring=.31+((Math.floor(point.note/12)%3)-1)*.045;
+  const angle=(point.note%12)/12*Math.PI*2-Math.PI/2,ring=.64+((Math.floor(point.note/12)%3)-1)*.065;
   const hold=Math.max(0,(now-point.born)/1000),breath=Math.sin(now*(.00035+instrument.pulse*.0008)+point.phase)*(.006+hold*.0015),baseX=Math.cos(angle)*(ring+breath),baseY=Math.sin(angle)*(ring+breath),compatible=held.filter(other=>other!==point&&isConsonantPair(point.note,other.note));
-  point.vx+=(baseX-point.x)*(.0012+instrument.stiffness*.009);point.vy+=(baseY-point.y)*(.0012+instrument.stiffness*.009);
+  if(activeSet.has(point.note)){point.vx+=(baseX-point.x)*(.0007+instrument.stiffness*.005);point.vy+=(baseY-point.y)*(.0007+instrument.stiffness*.005)}
+  else{const after=(now-point.releasedAt)/1000;point.vx+=seededChaos(point.note,Math.floor(after*2)+7)*.00011;point.vy+=seededChaos(point.note,Math.floor(after*2)+11)*.00011-Math.sin(point.phase+after)*.000035}
   if(activeSet.has(point.note))for(const other of held){
    if(other===point)continue;
    const dx=other.x-point.x,dy=other.y-point.y,d=Math.max(.025,Math.hypot(dx,dy)),sharedHold=Math.min(1,Math.max(0,(now-Math.max(point.born,other.born)-350)/2400));
@@ -1309,33 +1312,33 @@ function updatePitchPoints(now){
   }
   const hueVectors=[point.note,...compatible.map(other=>other.note)].reduce((sum,note)=>({x:sum.x+Math.cos(note%12/12*Math.PI*2),y:sum.y+Math.sin(note%12/12*Math.PI*2)}),{x:0,y:0});
   const mixedPitchHue=(Math.atan2(hueVectors.y,hueVectors.x)*180/Math.PI+360)%360,targetHue=(style.hue+mixedPitchHue*.32+hold*style.spin*7+360)%360,delta=((targetHue-point.hue+540)%360)-180;
-  const transition=reactive.transitionPulse,swirl=(reactive.transitionInterval||1)*style.spin*transition*.00032,jitter=seededChaos(point.note,Math.floor(now/420))*(.00008+style.chaos*.00028+instrument.roughness*.00012);
+  const transition=reactive.transitionPulse,speed=reactive.speedEnergy,swirl=(reactive.transitionInterval||1)*style.spin*transition*.00032,jitter=seededChaos(point.note,Math.floor(now/(420-speed*170)))*(.00008+style.chaos*.00028+instrument.roughness*.00012+speed*.00018);
   point.vx+=-point.y*swirl+jitter;point.vy+=point.x*swirl-jitter*.7;
-  point.hue=(point.hue+delta*(.008+compatible.length*.004)+360)%360;const damping=.875+instrument.damping*.055;point.vx*=damping;point.vy*=damping;point.x+=point.vx;point.y+=point.vy;
-  const distance=Math.hypot(point.x,point.y);if(distance>.46){point.x*=.46/distance;point.y*=.46/distance;point.vx*=-.25;point.vy*=-.25}
+  point.hue=(point.hue+delta*(.008+compatible.length*.004)+speed*.18+360)%360;const damping=activeSet.has(point.note)?(.875+instrument.damping*.055):.982;point.vx*=damping;point.vy*=damping;point.x+=point.vx;point.y+=point.vy;
+  const distance=Math.hypot(point.x,point.y);if(distance>.96){point.x*=.96/distance;point.y*=.96/distance;point.vx*=-.42;point.vy*=-.42}
  }
  reactive.transitionPulse*=.972;
+ reactive.speedEnergy*=.986;
  return{points:[...reactive.pitchPoints.values()],activeSet};
 }
 function drawPitchConstellation(g,w,h,now){
- const {points,activeSet}=updatePitchPoints(now),scale=Math.min(w,h),cx=w/2,cy=h/2,style=chordVisualStyle(),instrument=instrumentPhysicsTarget();
+ const {points,activeSet}=updatePitchPoints(now),xScale=w*.46,yScale=h*.43,cx=w/2,cy=h/2,style=chordVisualStyle(),instrument=instrumentPhysicsTarget(),speed=reactive.speedEnergy;
  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){
   const a=points[i],b=points[j];
   if(!activeSet.has(a.note)||!activeSet.has(b.note)||!isConsonantPair(a.note,b.note))continue;
   const strength=Math.min(a.life,b.life),held=Math.min(1,Math.max(0,(now-Math.max(a.born,b.born))/2200)),lineHue=(style.hue+(a.note+b.note)%12*3+360)%360;
   g.setLineDash(style.line==='broken'?[3,7]:style.line==='open'?[14,8]:style.line==='zigzag'?[5,3]:[]);
-  g.strokeStyle=rgba(hsl(lineHue,72,style.family==='maj7'?42:50),strength*(.24+held*.38));g.lineWidth=1.2+held*2.4;
-  const ax=cx+a.x*scale,ay=cy+a.y*scale,bx=cx+b.x*scale,by=cy+b.y*scale,mx=(ax+bx)/2,my=(ay+by)/2,bend=(style.spin*18+reactive.transitionInterval*reactive.transitionPulse*3)*Math.sin((a.note+b.note)*1.7);
+  g.strokeStyle=rgba(hsl(lineHue,72,style.family==='maj7'?42:50),strength*(.24+held*.38));g.lineWidth=1.2+held*2.4+speed*.8;
+  const ax=cx+a.x*xScale,ay=cy+a.y*yScale,bx=cx+b.x*xScale,by=cy+b.y*yScale,mx=(ax+bx)/2,my=(ay+by)/2,bend=(style.spin*18+reactive.transitionInterval*reactive.transitionPulse*3+speed*12)*Math.sin((a.note+b.note)*1.7);
   g.beginPath();g.moveTo(ax,ay);style.line==='soft'||style.line==='diamond'?g.quadraticCurveTo(mx-(by-ay)/Math.max(1,Math.hypot(bx-ax,by-ay))*bend,my+(bx-ax)/Math.max(1,Math.hypot(bx-ax,by-ay))*bend,bx,by):g.lineTo(bx,by);g.stroke();g.setLineDash([]);
  }
  for(const point of points){
-  const hold=Math.max(0,(now-point.born)/1000),x=cx+point.x*scale,y=cy+point.y*scale,color=hsl(point.hue,68+style.chaos*18,style.family==='maj7'?43:48),radius=(8+point.velocity*10+Math.min(10,hold*1.8))*point.life,phase=now*(.00055+instrument.pulse*.0014+Math.abs(style.spin)*.00035)+point.phase;
+  const hold=Math.max(0,(now-point.born)/1000),x=cx+point.x*xScale,y=cy+point.y*yScale,color=hsl(point.hue,68+style.chaos*18,style.family==='maj7'?43:48),radius=(9+point.velocity*11+Math.min(12,hold*1.9)+speed*4)*point.life,phase=now*(.00055+instrument.pulse*.0014+Math.abs(style.spin)*.00035+speed*.00045)+point.phase;
+  if(activeSet.has(point.note)){const wave=(now-point.born)*(0.035+speed*.035)%Math.max(w,h)*.72;g.strokeStyle=rgba(color,Math.max(0,.10-wave/Math.max(w,h)*.12));g.lineWidth=.8+speed;g.beginPath();g.arc(x,y,wave,0,Math.PI*2);g.stroke()}
   g.fillStyle=rgba(color,.11*point.life);g.beginPath();g.arc(x,y,radius+3,0,Math.PI*2);g.fill();
-  const samples=Math.max(18,style.sides*5);g.beginPath();for(let i=0;i<samples;i++){const a=i/samples*Math.PI*2+phase*style.spin*.18,order=Math.cos(a*style.sides)*(.055+style.chaos*.075),organic=Math.sin(a*style.lobes+phase)*(.035+instrument.roughness*.055),random=seededChaos(point.note,i)*style.chaos*.045,wobble=1+order+organic+random,r=radius*wobble,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();
+  const samples=19+Math.abs(point.shapeSeed)%13,morph=Math.floor(now/(760-speed*260));g.beginPath();for(let i=0;i<samples;i++){const raw=i/samples*Math.PI*2,angleNoise=seededChaos(point.shapeSeed+morph,i+31)*(.025+style.chaos*.045),a=raw+phase*style.spin*.18+angleNoise,order=Math.cos(a*style.sides)*(.018+style.chaos*.025),organic=Math.sin(a*style.lobes+phase)*(.035+instrument.roughness*.055),random=seededChaos(point.shapeSeed+morph,i)*(.075+style.chaos*.095),wobble=1+order+organic+random,r=radius*wobble,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;i?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();
   g.fillStyle=rgba(color,.9*point.life);g.fill();g.strokeStyle=rgba([255,255,255],.46*point.life);g.lineWidth=1.1;g.stroke();
-  if(activeSet.has(point.note)){g.fillStyle=rgba([255,255,255],.82);g.font='700 11px system-ui';g.textAlign='center';g.fillText(noteName(point.note),x,y-radius-7)}
  }
- g.textAlign='start';
 }
 function drawBlobConnections(g,w,h,c1,c2){const scale=Math.min(w,h)*.72,cx=w/2,cy=h/2;
  for(let i=0;i<reactive.blobs.length;i++)for(let j=i+1;j<reactive.blobs.length;j++){const a=reactive.blobs[i],b=reactive.blobs[j],dx=(b.x-a.x)*scale,dy=(b.y-a.y)*scale,d=Math.hypot(dx,dy),limit=(a.r+b.r)*scale*2.6;if(d<limit){const alpha=(1-d/limit)*(.10+reactive.energy*.10);g.strokeStyle=rgba(i%2?c1:c2,alpha);g.lineWidth=Math.max(1,(1-d/limit)*9);g.beginPath();g.moveTo(cx+a.x*scale,cy+a.y*scale);g.lineTo(cx+b.x*scale,cy+b.y*scale);g.stroke()}}
@@ -1343,8 +1346,8 @@ function drawBlobConnections(g,w,h,c1,c2){const scale=Math.min(w,h)*.72,cx=w/2,c
 }
 function drawReactiveObject(g,w,h,now){
  const scale=Math.min(w,h),cx=w/2,cy=h/2,guide=cssRgb('--muted',[130,120,105]);
- for(let pitch=0;pitch<12;pitch++){const angle=pitch/12*Math.PI*2-Math.PI/2,r=.31*scale;g.fillStyle=rgba(guide,.12);g.beginPath();g.arc(cx+Math.cos(angle)*r,cy+Math.sin(angle)*r,2.2,0,Math.PI*2);g.fill()}
- if(reactive.transitionPulse>.04&&reactive.previousRoot!=null){const style=chordVisualStyle(),direction=Math.sign(reactive.transitionInterval||1),progress=1-reactive.transitionPulse,r=scale*(.08+progress*.38);g.strokeStyle=rgba(hsl(style.hue,65,52),reactive.transitionPulse*.28);g.lineWidth=1.5;g.setLineDash([4+Math.abs(reactive.transitionInterval),7]);g.beginPath();g.arc(cx,cy,r,direction>0?-Math.PI*.75:Math.PI*.25,direction>0?Math.PI*.75:-Math.PI*.75,direction<0);g.stroke();g.setLineDash([])}
+ for(let pitch=0;pitch<12;pitch++){const angle=pitch/12*Math.PI*2-Math.PI/2;g.fillStyle=rgba(guide,.075);g.beginPath();g.arc(cx+Math.cos(angle)*w*.295,cy+Math.sin(angle)*h*.275,1.8,0,Math.PI*2);g.fill()}
+ if(reactive.transitionPulse>.04&&reactive.previousRoot!=null){const style=chordVisualStyle(),direction=Math.sign(reactive.transitionInterval||1),progress=1-reactive.transitionPulse,r=scale*(.08+progress*.58);g.strokeStyle=rgba(hsl(style.hue,65,52),reactive.transitionPulse*.28);g.lineWidth=1.5;g.setLineDash([4+Math.abs(reactive.transitionInterval),7]);g.beginPath();g.arc(cx,cy,r,direction>0?-Math.PI*.75:Math.PI*.25,direction>0?Math.PI*.75:-Math.PI*.75,direction<0);g.stroke();g.setLineDash([])}
  drawPitchConstellation(g,w,h,now);
 }
 function drawScope(now=performance.now()){
