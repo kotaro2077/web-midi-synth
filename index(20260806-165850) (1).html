@@ -1338,7 +1338,7 @@ function drawPitchConstellation(g,w,h,now){
   const distance=Math.max(1,Math.hypot(bx-ax,by-ay)),nx=-(by-ay)/distance,ny=(bx-ax)/distance,merge=Math.max(0,1-distance/115)*held;
   mergeStrength.set(a.note,Math.max(mergeStrength.get(a.note)||0,merge));mergeStrength.set(b.note,Math.max(mergeStrength.get(b.note)||0,merge));
   if(merge>0){const bridge=g.createLinearGradient(ax,ay,bx,by);bridge.addColorStop(0,rgba(hsl(a.hue,70,48),.2*merge));bridge.addColorStop(.5,rgba(hsl((a.hue+b.hue)/2,72,50),.28*merge));bridge.addColorStop(1,rgba(hsl(b.hue,70,48),.2*merge));g.strokeStyle=bridge;g.lineWidth=5+merge*22;g.lineCap='round';g.beginPath();g.moveTo(ax,ay);g.quadraticCurveTo(mx+nx*bend*.25,my+ny*bend*.25,bx,by);g.stroke()}
-  for(let filament=-1;filament<=1;filament++){const offset=filament*(3.5+held*3),curve=bend+offset*2;g.strokeStyle=rgba(hsl(lineHue+filament*7,70,50),strength*(.10+held*.17));g.lineWidth=.55+held*.8;g.beginPath();g.moveTo(ax+nx*offset,ay+ny*offset);g.quadraticCurveTo(mx+nx*curve,my+ny*curve,bx+nx*offset,by+ny*offset);g.stroke()}
+  for(let filament=-1;filament<=1;filament++){const offset=filament*(3.5+held*3),curve=bend+offset*2;g.strokeStyle=rgba(hsl(lineHue+filament*7,70,50),strength*(.065+held*.11));g.lineWidth=.4+held*.55;g.beginPath();g.moveTo(ax+nx*offset,ay+ny*offset);g.quadraticCurveTo(mx+nx*curve,my+ny*curve,bx+nx*offset,by+ny*offset);g.stroke()}
   const pulseT=(now*(.00018+speed*.00032)+(a.note*13+b.note*7)*.031)%1,controlX=mx+nx*bend,controlY=my+ny*bend,pulseX=(1-pulseT)*(1-pulseT)*ax+2*(1-pulseT)*pulseT*controlX+pulseT*pulseT*bx,pulseY=(1-pulseT)*(1-pulseT)*ay+2*(1-pulseT)*pulseT*controlY+pulseT*pulseT*by;
   g.fillStyle=rgba(hsl(lineHue,78,62),.48+held*.36);g.beginPath();g.arc(pulseX,pulseY,1.8+speed*1.4,0,Math.PI*2);g.fill();g.lineCap='butt';
  }
@@ -1347,7 +1347,7 @@ function drawPitchConstellation(g,w,h,now){
   if(activeSet.has(point.note)){const wave=(now-point.born)*(0.035+speed*.035)%Math.max(w,h)*.72;g.strokeStyle=rgba(color,Math.max(0,.10-wave/Math.max(w,h)*.12));g.lineWidth=.8+speed;g.beginPath();g.arc(x,y,wave,0,Math.PI*2);g.stroke()}
   g.fillStyle=rgba(color,.11*point.life);g.beginPath();g.arc(x,y,radius+3,0,Math.PI*2);g.fill();
   const samples=16+Math.abs(point.shapeSeed)%9,morph=Math.floor(now/(900-speed*260)),vertices=[];for(let i=0;i<samples;i++){const raw=i/samples*Math.PI*2,angleNoise=seededChaos(point.shapeSeed+morph,i+31)*(.012+style.chaos*.025),a=raw+phase*style.spin*.14+angleNoise,order=Math.cos(a*style.sides)*(.012+style.chaos*.018),organic=Math.sin(a*style.lobes+phase)*(.025+instrument.roughness*.04),random=seededChaos(point.shapeSeed+morph,i)*(.035+style.chaos*.055),wobble=1+order+organic+random,r=radius*wobble;vertices.push({x:x+Math.cos(a)*r,y:y+Math.sin(a)*r})}drawSmoothLoop(g,vertices);
-  g.fillStyle=rgba(color,.9*point.life);g.fill();g.strokeStyle=rgba([255,255,255],.46*point.life);g.lineWidth=1.1;g.stroke();
+  const body=g.createRadialGradient(x-radius*.18,y-radius*.2,radius*.08,x,y,radius*1.18);body.addColorStop(0,rgba(hsl(point.hue,66,60),.72*point.life));body.addColorStop(.58,rgba(color,.48*point.life));body.addColorStop(1,rgba(color,.07*point.life));g.fillStyle=body;g.shadowColor=rgba(color,.16*point.life);g.shadowBlur=5+merged*4;g.fill();g.shadowBlur=0;g.strokeStyle=rgba(color,.055*point.life);g.lineWidth=.45;g.stroke();
  }
 }
 function drawBlobConnections(g,w,h,c1,c2){const scale=Math.min(w,h)*.72,cx=w/2,cy=h/2;
