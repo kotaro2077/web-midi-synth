@@ -337,7 +337,7 @@ const $=id=>document.getElementById(id);
 const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
 let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
 const voices=new Map(),activeNotes=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
-const reactive={nodes:[],blobs:[],lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0};
+const reactive={nodes:[],blobs:[],pitchPoints:new Map(),lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0};
 const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const profiles=[
  ['maj13','maj13',[0,4,7,11,2,5,9]],['13','13',[0,4,7,10,2,5,9]],['m13','m13',[0,3,7,10,2,5,9]],
@@ -943,7 +943,7 @@ function recordMidiNote(note,velocity){
  reactive.targetGrowth=Math.min(1.25,reactive.targetGrowth+.07+velocity*.16);
  const a=(note%12)/12*Math.PI*2+reactive.rotation;
  const radius=.20+Math.random()*.34;
- reactive.blobs.push({x:Math.cos(a)*radius,y:Math.sin(a)*radius,vx:(Math.random()-.5)*.018,vy:(Math.random()-.5)*.018,r:.025+velocity*.035,targetR:.055+velocity*.075,hue:(note%12)*30,life:1});
+ reactive.blobs.push({note,x:Math.cos(a)*radius,y:Math.sin(a)*radius,vx:(Math.random()-.5)*.018,vy:(Math.random()-.5)*.018,r:.025+velocity*.035,targetR:.055+velocity*.075,hue:(note%12)*30,life:1});
  if(reactive.blobs.length>32)reactive.blobs.splice(0,reactive.blobs.length-32);
  if(reactive.nodes.length){
    const index=Math.abs(note)%reactive.nodes.length,node=reactive.nodes[index];
@@ -1263,9 +1263,56 @@ function updateReactiveBlobs(dt){
   b.vx*=Math.pow(.986,dt*60);b.vy*=Math.pow(.986,dt*60);b.vx=Math.max(-.035,Math.min(.035,b.vx));b.vy=Math.max(-.035,Math.min(.035,b.vy));b.x+=b.vx*dt*60;b.y+=b.vy*dt*60;const dist=Math.hypot(b.x,b.y);if(dist>.72){b.x*=.72/dist;b.y*=.72/dist;b.vx*=-.35;b.vy*=-.35}b.r=Math.max(.012,Math.min(.18,b.r));b.life-=dt*(active?.004:.018)}
  reactive.blobs=reactive.blobs.filter(b=>b.life>0&&b.r>.008)
 }
+const consonantIntervals=new Set([0,3,4,5,7,8,9]);
+function isConsonantPair(a,b){return consonantIntervals.has(Math.abs(a-b)%12)}
+function updatePitchPoints(now){
+ const active=[...activeNotes.entries()];
+ for(const [note,velocity] of active){
+  let point=reactive.pitchPoints.get(note);
+  if(!point){
+   const angle=(note%12)/12*Math.PI*2-Math.PI/2,radius=.31+((Math.floor(note/12)%3)-1)*.045;
+   point={note,x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,targetX:Math.cos(angle)*radius,targetY:Math.sin(angle)*radius,velocity,born:now,life:0};
+   reactive.pitchPoints.set(note,point);
+  }
+  point.velocity=velocity;point.life+=(1-point.life)*.12;
+ }
+ const activeSet=new Set(active.map(([note])=>note));
+ for(const point of reactive.pitchPoints.values())if(!activeSet.has(point.note))point.life*=.94;
+ for(const [note,point] of reactive.pitchPoints)if(point.life<.015)reactive.pitchPoints.delete(note);
+ const held=[...reactive.pitchPoints.values()].filter(point=>activeSet.has(point.note));
+ for(const point of reactive.pitchPoints.values()){
+  const angle=(point.note%12)/12*Math.PI*2-Math.PI/2,ring=.31+((Math.floor(point.note/12)%3)-1)*.045;
+  const baseX=Math.cos(angle)*ring,baseY=Math.sin(angle)*ring;
+  const compatible=held.filter(other=>other!==point&&isConsonantPair(point.note,other.note));
+  const holdMix=activeSet.has(point.note)&&compatible.length?Math.min(.58,Math.max(0,(now-point.born-650)/3600))*.7:0;
+  const mixCenter=compatible.reduce((sum,other)=>({x:sum.x+other.x,y:sum.y+other.y}),{x:point.x,y:point.y});
+  mixCenter.x/=compatible.length+1;mixCenter.y/=compatible.length+1;
+  point.targetX=baseX*(1-holdMix)+mixCenter.x*holdMix;point.targetY=baseY*(1-holdMix)+mixCenter.y*holdMix;
+  point.x+=(point.targetX-point.x)*.055;point.y+=(point.targetY-point.y)*.055;
+ }
+ return{points:[...reactive.pitchPoints.values()],activeSet};
+}
+function drawPitchConstellation(g,w,h,now){
+ const {points,activeSet}=updatePitchPoints(now),scale=Math.min(w,h),cx=w/2,cy=h/2;
+ for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){
+  const a=points[i],b=points[j];
+  if(!activeSet.has(a.note)||!activeSet.has(b.note)||!isConsonantPair(a.note,b.note))continue;
+  const strength=Math.min(a.life,b.life),held=Math.min(1,Math.max(0,(now-Math.max(a.born,b.born))/2200));
+  g.strokeStyle=rgba(hsl(((a.note%12)*30+(b.note%12)*30)/2,68,52),.28+held*.34);
+  g.lineWidth=1.4+held*2.2;g.beginPath();g.moveTo(cx+a.x*scale,cy+a.y*scale);g.lineTo(cx+b.x*scale,cy+b.y*scale);g.stroke();
+ }
+ for(const point of points){
+  const x=cx+point.x*scale,y=cy+point.y*scale,color=hsl((point.note%12)*30,72,48),radius=(5+point.velocity*8)*point.life;
+  g.fillStyle=rgba(color,.14*point.life);g.beginPath();g.arc(x,y,radius+4,0,Math.PI*2);g.fill();
+  g.fillStyle=rgba(color,.92*point.life);g.beginPath();g.arc(x,y,radius,0,Math.PI*2);g.fill();
+  g.strokeStyle=rgba([255,255,255],.52*point.life);g.lineWidth=1.2;g.stroke();
+  if(activeSet.has(point.note)){g.fillStyle=rgba([255,255,255],.82);g.font='700 11px system-ui';g.textAlign='center';g.fillText(noteName(point.note),x,y-radius-7)}
+ }
+ g.textAlign='start';
+}
 function drawBlobConnections(g,w,h,c1,c2){const scale=Math.min(w,h)*.72,cx=w/2,cy=h/2;
  for(let i=0;i<reactive.blobs.length;i++)for(let j=i+1;j<reactive.blobs.length;j++){const a=reactive.blobs[i],b=reactive.blobs[j],dx=(b.x-a.x)*scale,dy=(b.y-a.y)*scale,d=Math.hypot(dx,dy),limit=(a.r+b.r)*scale*2.6;if(d<limit){const alpha=(1-d/limit)*(.10+reactive.energy*.10);g.strokeStyle=rgba(i%2?c1:c2,alpha);g.lineWidth=Math.max(1,(1-d/limit)*9);g.beginPath();g.moveTo(cx+a.x*scale,cy+a.y*scale);g.lineTo(cx+b.x*scale,cy+b.y*scale);g.stroke()}}
- for(let i=0;i<reactive.blobs.length;i++){const b=reactive.blobs[i],x=cx+b.x*scale,y=cy+b.y*scale,r=b.r*scale*(1+.12*Math.sin(performance.now()*.002+i)),col=hsl((b.hue+reactive.hueMemory+performance.now()*.01)%360,72,54),grad=g.createRadialGradient(x-r*.2,y-r*.25,r*.08,x,y,r*1.6);grad.addColorStop(0,rgba(col,.30));grad.addColorStop(.55,rgba(i%2?c1:c2,.15));grad.addColorStop(1,rgba(col,0));g.fillStyle=grad;g.beginPath();g.arc(x,y,r*1.6,0,Math.PI*2);g.fill()}
+ for(let i=0;i<reactive.blobs.length;i++){const b=reactive.blobs[i],x=cx+b.x*scale,y=cy+b.y*scale,r=b.r*scale*(1+.06*Math.sin(performance.now()*.001+i)),col=hsl((b.hue+reactive.hueMemory)%360,68,52),grad=g.createRadialGradient(x,y,r*.18,x,y,r*1.15);grad.addColorStop(0,rgba(col,.14));grad.addColorStop(.62,rgba(i%2?c1:c2,.07));grad.addColorStop(1,rgba(col,0));g.fillStyle=grad;g.beginPath();g.arc(x,y,r*1.15,0,Math.PI*2);g.fill()}
 }
 function drawReactiveObject(g,w,h,now){
  updateReactivePhysics(now);
@@ -1285,7 +1332,8 @@ function drawReactiveObject(g,w,h,now){
  }
  // Orbiting particles retain recent motion.
  for(let i=0;i<12;i++){const a=now*.00035*(i%2?1:-1)+i*Math.PI/6+reactive.rotation,r=baseRadius*(1.05+(i%4)*.12)+Math.sin(now*.001+i)*18*reactive.energy;g.fillStyle=rgba(i%2?c2:c3,.25+reactive.energy*.12);g.beginPath();g.arc(Math.cos(a)*r,Math.sin(a)*r,2+(i%3)+reactive.energy*1.6,0,Math.PI*2);g.fill()}
- g.fillStyle=rgba(c1,.78);g.beginPath();g.arc(0,0,7+reactive.energy*11,0,Math.PI*2);g.fill();g.restore();
+ g.fillStyle=rgba(c1,.62);g.beginPath();g.arc(0,0,6+reactive.energy*8,0,Math.PI*2);g.fill();g.restore();
+ drawPitchConstellation(g,w,h,now);
 }
 function drawScope(now=performance.now()){
  try{
