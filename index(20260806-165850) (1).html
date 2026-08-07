@@ -1,9 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MIDI Studio</title>
+<title>Web MIDI Synth | ブラウザで使える無料MIDIシンセサイザー</title>
+<meta name="description" content="USB MIDIキーボードをブラウザで演奏できる無料Web MIDIシンセサイザー。Web MIDI synthesizer with chord detection, instruments, audio output selection and visualizers." />
+<meta name="keywords" content="Web MIDI, MIDI synthesizer, browser synth, online synthesizer, USB MIDI keyboard, chord detection, Web Audio, MIDIシンセサイザー, ブラウザシンセ, オンラインシンセサイザー, コード判定" />
+<meta name="robots" content="index, follow" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Web MIDI Synth" />
+<meta property="og:title" content="Web MIDI Synth | ブラウザMIDIシンセサイザー" />
+<meta property="og:description" content="USB MIDIキーボードをブラウザで演奏。Play a USB MIDI keyboard with instruments, chord detection and visualizers." />
+<meta property="og:url" content="https://kotaro2077.github.io/web-midi-synth/" />
+<meta property="og:locale" content="ja_JP" />
+<meta property="og:locale:alternate" content="en_US" />
+<meta name="twitter:card" content="summary" />
+<link rel="canonical" href="https://kotaro2077.github.io/web-midi-synth/" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Web MIDI Synth","alternateName":"ブラウザMIDIシンセサイザー","url":"https://kotaro2077.github.io/web-midi-synth/","applicationCategory":"MultimediaApplication","operatingSystem":"Web Browser","inLanguage":["ja","en"],"description":"USB MIDI keyboard synthesizer with chord detection, instruments, audio output selection and visualizers.","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"}}</script>
 <style>
 :root{
   color-scheme:dark;
@@ -215,7 +228,9 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
   background:var(--surface);
 }
 
-.device-field{display:grid;gap:5px}.device-field>span{color:var(--muted);font-size:.78rem;font-weight:800;letter-spacing:.06em}
+.device-group{display:grid;gap:7px;padding:9px;background:var(--panel-strong)}
+.device-field{display:grid;gap:5px}.device-field>span,.device-title{color:var(--muted);font-size:.78rem;font-weight:800;letter-spacing:.06em}
+.device-group .status-box{font-size:.78rem}
 </style>
 </head>
 <body>
@@ -223,15 +238,22 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 <section class="topbar">
   <div class="panel settings">
     <div class="settings-row">
-      <button id="enableButton">Enable MIDI</button>
-      <select id="midiInput" disabled><option>Not connected</option></select>
-      <label class="device-field"><span>OUTPUT DEVICE</span>
-        <select id="audioOutput" disabled><option value="">Default Audio Output</option></select>
-      </label>
-      <select id="midiChannel"><option value="all">All Channels</option><option value="0">Channel 1</option><option value="1">Channel 2</option><option value="2">Channel 3</option><option value="3">Channel 4</option><option value="4">Channel 5</option><option value="5">Channel 6</option><option value="6">Channel 7</option><option value="7">Channel 8</option><option value="8">Channel 9</option><option value="9">Channel 10</option><option value="10">Channel 11</option><option value="11">Channel 12</option><option value="12">Channel 13</option><option value="13">Channel 14</option><option value="14">Channel 15</option><option value="15">Channel 16</option></select>
+      <div class="device-group">
+        <div class="device-title">MIDI IN</div>
+        <button id="enableButton">Enable MIDI IN</button>
+        <select id="midiInput" disabled><option>Not connected</option></select>
+        <select id="midiChannel" disabled><option value="all">All Channels</option><option value="0">Channel 1</option><option value="1">Channel 2</option><option value="2">Channel 3</option><option value="3">Channel 4</option><option value="4">Channel 5</option><option value="5">Channel 6</option><option value="6">Channel 7</option><option value="7">Channel 8</option><option value="8">Channel 9</option><option value="9">Channel 10</option><option value="10">Channel 11</option><option value="11">Channel 12</option><option value="12">Channel 13</option><option value="13">Channel 14</option><option value="14">Channel 15</option><option value="15">Channel 16</option></select>
+        <div class="status-box"><span id="statusDot" class="dot"></span><span id="statusText">MIDI IN is disabled</span></div>
+      </div>
+      <div class="device-group">
+        <label class="device-field"><span>OUTPUT DEVICE</span>
+          <select id="audioOutput" disabled><option value="">Default Audio Output</option></select>
+        </label>
+        <button id="outputEnableButton">Enable Output</button>
+        <div class="status-box"><span id="outputStatusDot" class="dot"></span><span id="outputStatusText">Output is disabled</span></div>
+      </div>
       <button id="panicButton" class="secondary" disabled>All Notes Off</button>
     </div>
-    <div class="status-box"><span id="statusDot" class="dot"></span><span id="statusText">MIDI is not enabled</span></div>
   </div>
   <div class="panel instrument-hero">
     <div class="instrument-hero-main">
@@ -280,7 +302,7 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
         <option value="piano">Cheap Piano</option><option value="epiano">Electric Piano</option><option value="glock">Glockenspiel</option><option value="xylophone">Xylophone</option><option value="organ">Organ</option><option value="accordion">Melodica</option><option value="harmonica">Harmonica</option><option value="bagpipe">Bagpipe</option><option value="acousticGuitar">Acoustic Guitar</option><option value="electricClean">Electric Guitar — Clean</option><option value="electricOverdrive">Electric Guitar — Overdrive</option><option value="electricHighGain">Electric Guitar — High Gain</option><option value="clarinet">Clarinet</option><option value="sax">Alto Sax</option><option value="recorder">Recorder</option><option value="shakuhachi">Bamboo Flute</option><option value="flute">Flute</option><option value="ocarina">Ocarina</option><option value="orchestraHit">Orchestra Hit</option><option value="fmCrystal">Digital Crystal</option><option value="retroNoise">Bit Noise</option><option value="coinSpark">Coin Spark</option><option value="laserPluck">Laser Pluck</option><option value="dungeonDrone">Dungeon Drone</option><option value="pixelArp">Pixel Arpeggio</option><option value="gameKick">Arcade Kick</option><option value="warpTone">Warp Tone</option><option value="oboe">Oboe</option><option value="trumpet">Trumpet</option><option value="strings">Strings</option><option value="pad">Ambient Pad</option><option value="sineSynth">Sine</option><option value="triangleSynth">Triangle</option><option value="sawSynth">Sawtooth</option><option value="squareSynth">Square</option><option value="bit8">8-Bit</option><option value="synthLead">Synth Lead</option><option value="synthBass">Synth Bass</option><option value="synthPluck">Synth Pluck</option>
       </select>
       <div class="knob-grid">
-        <div class="knob-control"><div class="knob-label">Volume</div><input id="master" class="hidden-range" type="range" min="0" max="1" value="0.7" step="0.01"><div class="knob" data-for="master" tabindex="0"></div><div class="knob-value" id="masterOut">70%</div></div>
+        <div class="knob-control"><div class="knob-label">Volume</div><input id="master" class="hidden-range" type="range" min="0" max="2" value="0.7" step="0.01"><div class="knob" data-for="master" tabindex="0"></div><div class="knob-value" id="masterOut">70%</div></div>
         <div class="knob-control"><div class="knob-label">Brightness</div><input id="brightness" class="hidden-range" type="range" min="0" max="1" value="0.6" step="0.01"><div class="knob" data-for="brightness" tabindex="0"></div><div class="knob-value" id="brightnessOut">60%</div></div>
         <div class="knob-control"><div class="knob-label">Reverb</div><input id="reverb" class="hidden-range" type="range" min="0" max="0.75" value="0.28" step="0.01"><div class="knob" data-for="reverb" tabindex="0"></div><div class="knob-value" id="reverbOut">28%</div></div>
         <div class="knob-control"><div class="knob-label">Attack</div><input id="attack" class="hidden-range" type="range" min="0.2" max="2.2" value="1" step="0.01"><div class="knob" data-for="attack" tabindex="0"></div><div class="knob-value" id="attackOut">100%</div><div id="attackNote" class="control-note"></div></div>
@@ -305,8 +327,8 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const ui={enableButton:$('enableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
-let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
+const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
+let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
 const voices=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
 const reactive={nodes:[],blobs:[],lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0};
 const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
@@ -418,6 +440,7 @@ const soundControlPreset={
 function noteName(n){return `${names[n%12]}${Math.floor(n/12)-1}`}function freq(n){return 440*Math.pow(2,(n-69)/12)}
 function avgVelocity(){if(!voices.size)return 0;let s=0;voices.forEach(v=>s+=v.velocity);return s/voices.size}
 function setStatus(c,t){ui.statusDot.className='dot'+(c?` ${c}`:'');ui.statusText.textContent=t}
+function setOutputStatus(c,t){ui.outputStatusDot.className='dot'+(c?` ${c}`:'');ui.outputStatusText.textContent=t}
 function impulse(seconds=2.5,decay=2.4){const rate=ctx.sampleRate,len=rate*seconds|0,b=ctx.createBuffer(2,len,rate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay)}return b}
 async function initAudio(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();compressor=ctx.createDynamicsCompressor();analyser=ctx.createAnalyser();dryBus=ctx.createGain();wetBus=ctx.createGain();convolver=ctx.createConvolver();convolver.buffer=impulse();analyser.fftSize=2048;master.gain.value=+ui.master.value;dryBus.connect(master);wetBus.connect(convolver).connect(master);const limiter=ctx.createDynamicsCompressor();
  limiter.threshold.value=-5;limiter.knee.value=2;limiter.ratio.value=16;limiter.attack.value=.001;limiter.release.value=.08;
@@ -851,7 +874,7 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
  return {sources,extras};
 }
 function startNote(n,velocity=.8){
- if(!ctx)return;
+ if(!ctx||!audioOutputEnabled)return;
  stopNote(n,true);recordMidiNote(n,velocity);
  const p=preset[ui.instrument.value],now=ctx.currentTime,amp=ctx.createGain(),filter=ctx.createBiquadFilter();
  filter.type='lowpass';filter.Q.value=p.q*(+ui.resonance.value);
@@ -897,8 +920,31 @@ function recordMidiNote(note,velocity){
  }
 }
 function handleMIDI(e){const[s,n,v]=e.data,cmd=s&240,ch=s&15,w=ui.midiChannel.value;if(w!=='all'&&+w!==ch)return;if(cmd===144&&v>0){startNote(n,v/127)}else if(cmd===128||(cmd===144&&v===0))stopNote(n);else if(cmd===176&&n===123)panic()}
-function connectInput(){if(selectedInput)selectedInput.onmidimessage=null;selectedInput=midiAccess?.inputs.get(ui.midiInput.value);if(selectedInput){selectedInput.onmidimessage=handleMIDI;setStatus('connected',selectedInput.name||'MIDI connected')}}
-function refreshInputs(){const a=[...midiAccess.inputs.values()],prev=ui.midiInput.value;ui.midiInput.innerHTML='';if(!a.length){ui.midiInput.innerHTML='<option>No MIDI input</option>';ui.midiInput.disabled=true;setStatus('','Connect a USB MIDI keyboard');return}a.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.textContent=i.name||i.id;ui.midiInput.appendChild(o)});ui.midiInput.disabled=false;ui.midiInput.value=a.some(i=>i.id===prev)?prev:a[0].id;connectInput()}
+function connectInput(){
+ if(selectedInput)selectedInput.onmidimessage=null;
+ selectedInput=midiInputEnabled?midiAccess?.inputs.get(ui.midiInput.value):null;
+ if(selectedInput){
+  selectedInput.onmidimessage=handleMIDI;
+  localStorage.setItem('midi-studio-input',selectedInput.id);
+  setStatus('connected',selectedInput.name||'MIDI IN connected');
+ }
+}
+function refreshInputs(){
+ const inputs=midiAccess?[...midiAccess.inputs.values()]:[];
+ const saved=ui.midiInput.value||localStorage.getItem('midi-studio-input')||'';
+ ui.midiInput.replaceChildren();
+ if(!inputs.length){
+  ui.midiInput.add(new Option('No MIDI input',''));
+  ui.midiInput.disabled=true;
+  setStatus('','Connect a USB MIDI keyboard');
+  return;
+ }
+ inputs.forEach(input=>ui.midiInput.add(new Option(input.name||input.id,input.id)));
+ ui.midiInput.value=inputs.some(input=>input.id===saved)?saved:inputs[0].id;
+ ui.midiInput.disabled=!midiInputEnabled;
+ ui.midiChannel.disabled=!midiInputEnabled;
+ if(midiInputEnabled)connectInput();
+}
 async function refreshAudioOutputs(){
  const saved=ui.audioOutput.value||localStorage.getItem('midi-studio-audio-output')||'';
  ui.audioOutput.replaceChildren(new Option('Default Audio Output',''));
@@ -914,27 +960,74 @@ async function refreshAudioOutputs(){
    device.deviceId
   )));
   ui.audioOutput.value=outputs.some(device=>device.deviceId===saved)?saved:'';
-  ui.audioOutput.disabled=!(ctx&&typeof ctx.setSinkId==='function');
+  ui.audioOutput.disabled=!(audioOutputEnabled&&ctx&&typeof ctx.setSinkId==='function');
  }catch(error){
   ui.audioOutput.disabled=true;
-  setStatus('error',`Output devices unavailable: ${error.message}`);
+  setOutputStatus('error',`Output devices unavailable: ${error.message}`);
  }
 }
 async function selectAudioOutput(showStatus=true){
  if(!ctx||typeof ctx.setSinkId!=='function'){
-  if(showStatus)setStatus('error','Output device selection is not supported by this browser');
+  if(showStatus)setOutputStatus('error','Output device selection is not supported by this browser');
   return;
  }
  try{
   await ctx.setSinkId(ui.audioOutput.value||'');
   localStorage.setItem('midi-studio-audio-output',ui.audioOutput.value);
-  if(showStatus)setStatus('connected',`Output: ${ui.audioOutput.selectedOptions[0]?.textContent||'Default Audio Output'}`);
+  if(showStatus)setOutputStatus('connected',ui.audioOutput.selectedOptions[0]?.textContent||'Default Audio Output');
  }catch(error){
-  setStatus('error',`Cannot select output device: ${error.message}`);
+  setOutputStatus('error',`Cannot select output device: ${error.message}`);
   await refreshAudioOutputs();
  }
 }
-async function enable(){try{await initAudio();await refreshAudioOutputs();await selectAudioOutput(false);if(!navigator.requestMIDIAccess)throw Error('Web MIDI is unavailable');midiAccess=await navigator.requestMIDIAccess({sysex:false});midiAccess.onstatechange=refreshInputs;refreshInputs();ui.enableButton.textContent='Enabled';ui.enableButton.disabled=true;ui.panicButton.disabled=false}catch(e){setStatus('error',e.message)}}
+async function toggleMidiInput(){
+ if(midiInputEnabled){
+  midiInputEnabled=false;
+  if(selectedInput)selectedInput.onmidimessage=null;
+  selectedInput=null;
+  ui.midiInput.disabled=true;
+  ui.midiChannel.disabled=true;
+  ui.enableButton.textContent='Enable MIDI IN';
+  setStatus('','MIDI IN is disabled');
+  return;
+ }
+ try{
+  if(!navigator.requestMIDIAccess)throw Error('Web MIDI is unavailable');
+  if(!midiAccess)midiAccess=await navigator.requestMIDIAccess({sysex:false});
+  midiAccess.onstatechange=refreshInputs;
+  midiInputEnabled=true;
+  ui.enableButton.textContent='Disable MIDI IN';
+  refreshInputs();
+ }catch(error){
+  midiInputEnabled=false;
+  setStatus('error',error.message);
+ }
+}
+async function toggleAudioOutput(){
+ if(audioOutputEnabled){
+  panic();
+  audioOutputEnabled=false;
+  if(ctx?.state==='running')await ctx.suspend();
+  ui.audioOutput.disabled=true;
+  ui.outputEnableButton.textContent='Enable Output';
+  ui.panicButton.disabled=true;
+  setOutputStatus('','Output is disabled');
+  return;
+ }
+ try{
+  await initAudio();
+  audioOutputEnabled=true;
+  await refreshAudioOutputs();
+  await selectAudioOutput(false);
+  ui.outputEnableButton.textContent='Disable Output';
+  ui.panicButton.disabled=false;
+  setOutputStatus('connected',ui.audioOutput.selectedOptions[0]?.textContent||'Default Audio Output');
+ }catch(error){
+  audioOutputEnabled=false;
+  ui.audioOutput.disabled=true;
+  setOutputStatus('error',error.message);
+ }
+}
 function interpretations(notesIn){
  const ordered=[...new Set(notesIn)].sort((a,b)=>a-b),pcs=[...new Set(ordered.map(n=>n%12))].sort((a,b)=>a-b),bass=ordered.length?ordered[0]%12:null,out=[];
  if(!pcs.length)return[];
@@ -1171,7 +1264,7 @@ function drawScope(now=performance.now()){
  }
  requestAnimationFrame(drawScope)
 }
-ui.enableButton.addEventListener('click',enable);ui.panicButton.addEventListener('click',panic);ui.midiInput.addEventListener('change',connectInput);ui.audioOutput.addEventListener('change',()=>selectAudioOutput());navigator.mediaDevices?.addEventListener?.('devicechange',refreshAudioOutputs);ui.themeButton.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light'));function applySoundControlPreset(value){const values=soundControlPreset[value];if(!values)return;for(const [id,val] of Object.entries(values)){const input=ui[id];if(!input)continue;input.value=val;input.dispatchEvent(new Event('input',{bubbles:true}))}}
+ui.enableButton.addEventListener('click',toggleMidiInput);ui.outputEnableButton.addEventListener('click',toggleAudioOutput);ui.panicButton.addEventListener('click',panic);ui.midiInput.addEventListener('change',connectInput);ui.audioOutput.addEventListener('change',()=>selectAudioOutput());navigator.mediaDevices?.addEventListener?.('devicechange',refreshAudioOutputs);ui.themeButton.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light'));function applySoundControlPreset(value){const values=soundControlPreset[value];if(!values)return;for(const [id,val] of Object.entries(values)){const input=ui[id];if(!input)continue;input.value=val;input.dispatchEvent(new Event('input',{bubbles:true}))}}
 function updateControlAvailability(value){const disabled=preset[value].attackControl===false;ui.attack.disabled=disabled;const box=ui.attack.closest('.knob-control');if(box)box.classList.toggle('control-disabled',disabled);ui.attackNote.textContent=disabled?'Fixed transient':''}
 function resetSoundControls(){applySoundControlPreset(ui.instrument.value)}
 function validateSoundSystem(){
