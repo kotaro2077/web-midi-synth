@@ -212,6 +212,7 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
   min-height:320px;
   background:var(--surface);
 }
+.canvas-error[hidden]{display:none!important}
 #scope{
   display:block;
   width:100%;
@@ -289,7 +290,7 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
       <div class="view-switch">
         <button type="button" data-view="waveform" class="active">Waveform</button>
         <button type="button" data-view="midi">MIDI History</button>
-        <button type="button" data-view="object">Reactive Object</button>
+        <button type="button" data-view="object" aria-label="Mystery visualization">???</button>
       </div>
       <div class="visual-stage">
         <canvas id="scope" width="960" height="360"></canvas><div id="canvasError" class="canvas-error" hidden>Visualization unavailable</div>
@@ -329,7 +330,7 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 const $=id=>document.getElementById(id);
 const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
 let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
-const voices=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
+const voices=new Map(),activeNotes=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
 const reactive={nodes:[],blobs:[],lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0};
 const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const profiles=[
@@ -438,7 +439,7 @@ const soundControlPreset={
  piano:{master:.56,brightness:.56,reverb:.14,attack:.25,release:.52,cutoff:.92,resonance:.26},epiano:{master:.54,brightness:.50,reverb:.18,attack:.25,release:.66,cutoff:.82,resonance:.30},glock:{master:.52,brightness:.88,reverb:.46,attack:1,release:1.38,cutoff:1.35,resonance:.35},xylophone:{master:.58,brightness:.48,reverb:.16,attack:1,release:.48,cutoff:.78,resonance:.30},organ:{master:.58,brightness:.55,reverb:.22,attack:.88,release:.48,cutoff:1.05,resonance:.28},accordion:{master:.58,brightness:.56,reverb:.08,attack:.92,release:.48,cutoff:.76,resonance:.46},harmonica:{master:.50,brightness:.58,reverb:.12,attack:.55,release:.52,cutoff:.90,resonance:.62},bagpipe:{master:.45,brightness:.48,reverb:.18,attack:.92,release:.72,cutoff:.72,resonance:.52},acousticGuitar:{master:.62,brightness:.72,reverb:.22,attack:.38,release:.72,cutoff:1.02,resonance:.48},electricClean:{master:.58,brightness:.62,reverb:.06,attack:.30,release:.42,cutoff:.92,resonance:.38},electricOverdrive:{master:.54,brightness:.54,reverb:.045,attack:.30,release:.48,cutoff:.80,resonance:.48},electricHighGain:{master:.50,brightness:.48,reverb:.035,attack:.30,release:.52,cutoff:.68,resonance:.58},clarinet:{master:.58,brightness:.48,reverb:.20,attack:.92,release:.66,cutoff:.72,resonance:.82},sax:{master:.52,brightness:.58,reverb:.20,attack:.80,release:.72,cutoff:.78,resonance:.95},recorder:{master:.58,brightness:.70,reverb:.18,attack:.76,release:.52,cutoff:.98,resonance:.58},shakuhachi:{master:.60,brightness:.42,reverb:.42,attack:1.18,release:1.10,cutoff:.62,resonance:.55},flute:{master:.58,brightness:.68,reverb:.30,attack:1.0,release:.80,cutoff:1.12,resonance:.42},ocarina:{master:.56,brightness:.48,reverb:.24,attack:.78,release:.62,cutoff:.84,resonance:.54},orchestraHit:{master:.48,brightness:.62,reverb:.34,attack:.25,release:.78,cutoff:1.02,resonance:.60},fmCrystal:{master:.44,brightness:.88,reverb:.42,attack:.25,release:1.08,cutoff:1.35,resonance:.38},retroNoise:{master:.38,brightness:.72,reverb:.10,attack:.25,release:.34,cutoff:1.05,resonance:.76},coinSpark:{master:.42,brightness:.90,reverb:.24,attack:.25,release:.42,cutoff:1.30,resonance:.34},laserPluck:{master:.42,brightness:.78,reverb:.16,attack:.25,release:.38,cutoff:1.08,resonance:.86},dungeonDrone:{master:.42,brightness:.32,reverb:.50,attack:1.45,release:1.80,cutoff:.48,resonance:.72},pixelArp:{master:.40,brightness:.76,reverb:.12,attack:.25,release:.28,cutoff:1.12,resonance:.46},gameKick:{master:.45,brightness:.36,reverb:.04,attack:.25,release:.25,cutoff:.66,resonance:.42},warpTone:{master:.40,brightness:.62,reverb:.28,attack:.64,release:.72,cutoff:.92,resonance:1.16},oboe:{master:.50,brightness:.52,reverb:.18,attack:.90,release:.62,cutoff:.68,resonance:1.12},trumpet:{master:.48,brightness:.62,reverb:.16,attack:.62,release:.58,cutoff:.82,resonance:.90},strings:{master:.52,brightness:.46,reverb:.40,attack:1.55,release:1.70,cutoff:.68,resonance:.42},pad:{master:.46,brightness:.38,reverb:.58,attack:1.90,release:2.05,cutoff:.56,resonance:.48},sineSynth:{master:.55,brightness:.58,reverb:.20,attack:.75,release:.85,cutoff:1.20,resonance:.28},triangleSynth:{master:.54,brightness:.62,reverb:.18,attack:.70,release:.78,cutoff:1.08,resonance:.34},sawSynth:{master:.45,brightness:.64,reverb:.18,attack:.62,release:.72,cutoff:.92,resonance:1.10},squareSynth:{master:.44,brightness:.60,reverb:.12,attack:.55,release:.58,cutoff:.88,resonance:.78},bit8:{master:.42,brightness:.82,reverb:.08,attack:.28,release:.30,cutoff:1.35,resonance:.30},synthLead:{master:.48,brightness:.68,reverb:.24,attack:.52,release:.72,cutoff:1.08,resonance:1.35},synthBass:{master:.54,brightness:.36,reverb:.08,attack:.30,release:.48,cutoff:.52,resonance:1.55},synthPluck:{master:.50,brightness:.70,reverb:.20,attack:.26,release:.44,cutoff:.92,resonance:.88}
 };
 function noteName(n){return `${names[n%12]}${Math.floor(n/12)-1}`}function freq(n){return 440*Math.pow(2,(n-69)/12)}
-function avgVelocity(){if(!voices.size)return 0;let s=0;voices.forEach(v=>s+=v.velocity);return s/voices.size}
+function avgVelocity(){if(!activeNotes.size)return 0;let s=0;activeNotes.forEach(velocity=>s+=velocity);return s/activeNotes.size}
 function setStatus(c,t){ui.statusDot.className='dot'+(c?` ${c}`:'');ui.statusText.textContent=t}
 function setOutputStatus(c,t){ui.outputStatusDot.className='dot'+(c?` ${c}`:'');ui.outputStatusText.textContent=t}
 function impulse(seconds=2.5,decay=2.4){const rate=ctx.sampleRate,len=rate*seconds|0,b=ctx.createBuffer(2,len,rate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay)}return b}
@@ -874,8 +875,12 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
  return {sources,extras};
 }
 function startNote(n,velocity=.8){
+ stopNote(n,true);
+ activeNotes.set(n,velocity);
+ recordMidiNote(n,velocity);
+ setKey(n,true);
+ updateHarmony();
  if(!ctx||!audioOutputEnabled)return;
- stopNote(n,true);recordMidiNote(n,velocity);
  const p=preset[ui.instrument.value],now=ctx.currentTime,amp=ctx.createGain(),filter=ctx.createBiquadFilter();
  filter.type='lowpass';filter.Q.value=p.q*(+ui.resonance.value);
  filter.frequency.value=p.cut*(+ui.cutoff.value)*(.45+.55*(+ui.brightness.value))*(.75+.45*velocity);
@@ -899,10 +904,30 @@ function startNote(n,velocity=.8){
    if(p.noise){const len=ctx.sampleRate*4|0,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1);noise=ctx.createBufferSource();const ng=ctx.createGain(),nf=ctx.createBiquadFilter();noise.buffer=b;nf.type='highpass';nf.frequency.value=700;ng.gain.value=p.noise*velocity;noise.connect(nf).connect(ng).connect(filter);noise.start(now)}
  }
  voices.set(n,{velocity,p,amp,oscillators,lfo,noise,extras});
- setKey(n,true);updateHarmony();
 }
-function stopNote(n,immediate=false){const v=voices.get(n);if(!v||!ctx)return;const now=ctx.currentTime,r=immediate?.02:v.p.r*(+ui.release.value);v.amp.gain.cancelScheduledValues(now);v.amp.gain.setTargetAtTime(.0001,now,Math.max(.006,r/5));v.oscillators.forEach(o=>{try{o.stop(now+r+.1)}catch{}});if(v.lfo)try{v.lfo.stop(now+r+.1)}catch{};if(v.noise)try{v.noise.stop(now+r+.1)}catch{};if(v.extras)for(const x of v.extras){if(typeof x.stop==='function')try{x.stop(now+r+.1)}catch{}}voices.delete(n);setKey(n,false);updateHarmony()}
-function panic(){[...voices.keys()].forEach(n=>stopNote(n,true));heldPointers.clear()}
+function stopNote(n,immediate=false){
+ const voice=voices.get(n);
+ if(voice&&ctx){
+  const now=ctx.currentTime,release=immediate?.02:voice.p.r*(+ui.release.value);
+  voice.amp.gain.cancelScheduledValues(now);
+  voice.amp.gain.setTargetAtTime(.0001,now,Math.max(.006,release/5));
+  voice.oscillators.forEach(source=>{try{source.stop(now+release+.1)}catch{}});
+  if(voice.lfo)try{voice.lfo.stop(now+release+.1)}catch{}
+  if(voice.noise)try{voice.noise.stop(now+release+.1)}catch{}
+  if(voice.extras)for(const source of voice.extras){
+   if(typeof source.stop==='function')try{source.stop(now+release+.1)}catch{}
+  }
+ }
+ voices.delete(n);
+ activeNotes.delete(n);
+ setKey(n,false);
+ updateHarmony();
+}
+function panic(){
+ const notes=new Set([...activeNotes.keys(),...voices.keys()]);
+ notes.forEach(note=>stopNote(note,true));
+ heldPointers.clear();
+}
 function recordMidiNote(note,velocity){
  const now=performance.now();
  midiTrail.push({note,velocity,time:now,duration:900+velocity*1700});
@@ -1049,30 +1074,13 @@ function interpretations(notesIn){
 function updateHistory(name,pcs){if(name==='—'||name===history[0]?.name)return;if(history.length)previousChordName=history[0].name;history.unshift({name,tones:pcs.map(i=>names[i]).join(' · ')});history.splice(5);ui.previousChord.textContent=previousChordName;ui.chordHistory.innerHTML=history.slice(0,4).map((h,i)=>`<div class="history-item"><b>${i===0?'Now':'Previous'}</b>${h.name}<span class="muted"> — ${h.tones}</span></div>`).join('')}
 let harmonyTimer=null;
 let lastHarmonyNoteCount=0;
-let pendingHarmonySignature='';
-let pendingHarmonySince=0;
 
 function applyHarmonyNow(){
- const active=[...voices.keys()].sort((a,b)=>a-b),alts=interpretations(active),vel=avgVelocity();
+ const active=[...activeNotes.keys()].sort((a,b)=>a-b),alts=interpretations(active),vel=avgVelocity();
  if(active.length){
    const best=alts[0];
    if(!best)return;
    const played=active.map(noteName).join(', ');
-   const signature=`${best.name}|${active.map(n=>n%12).join(',')}`;
-   const now=performance.now();
-
-   // A new interpretation must remain unchanged briefly before replacing
-   // the currently displayed chord. This suppresses staggered finger input.
-   if(signature!==pendingHarmonySignature){
-     pendingHarmonySignature=signature;
-     pendingHarmonySince=now;
-     updateHarmony(120);
-     return;
-   }
-   if(now-pendingHarmonySince<150){
-     updateHarmony(150-(now-pendingHarmonySince));
-     return;
-   }
 
    lastChord={name:best.name,root:best.root,pcs:[...best.pcs],played};
    ui.chordName.textContent=best.name;
@@ -1083,7 +1091,6 @@ function applyHarmonyNow(){
    setTheme(best.root,vel);
  }else{
    // Do not clear the previous chord when all notes are released.
-   pendingHarmonySignature='';
    if(lastChord.name){
      ui.chordName.textContent=lastChord.name;
      ui.chordRoot.textContent=lastChord.root==null?'':names[lastChord.root];
@@ -1095,11 +1102,11 @@ function applyHarmonyNow(){
 }
 
 function updateHarmony(forcedDelay=null){
- const noteCount=voices.size;
+ const noteCount=activeNotes.size;
  const decreasing=noteCount<lastHarmonyNoteCount;
- // Note-on: wait for the remaining fingers. Note-off: use a longer grace
- // period so a brief release or re-articulation does not change the chord.
- const delay=forcedDelay!==null?Math.max(0,forcedDelay):(decreasing?320:190);
+ // A short, single debounce absorbs staggered MIDI messages without adding a
+ // second stabilization wait. Releases get slightly more grace than attacks.
+ const delay=forcedDelay!==null?Math.max(0,forcedDelay):(decreasing?90:45);
  clearTimeout(harmonyTimer);
  harmonyTimer=setTimeout(applyHarmonyNow,delay);
 }
@@ -1130,19 +1137,49 @@ function canvasColor(variable,fallback){
  if(!value||value.includes('color-mix')||value.includes('var('))return fallback;
  return value;
 }
+let scopeContext=null;
 function safeCanvasContext(){
  if(!ui.scope)return null;
- try{return ui.scope.getContext('2d',{alpha:true})}catch(error){
+ if(scopeContext)return scopeContext;
+ try{
+  scopeContext=ui.scope.getContext('2d');
+  return scopeContext;
+ }catch(error){
    console.error('Canvas context error',error);
    if(ui.canvasError)ui.canvasError.hidden=false;
    return null;
  }
 }
+function drawVisualizationGrid(g,w,h,centerLine=false){
+ g.fillStyle=canvasColor('--surface','#111111');
+ g.fillRect(0,0,w,h);
+ g.strokeStyle=canvasColor('--line','#3a3329');
+ g.lineWidth=1;
+ for(let x=0;x<w;x+=50){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}
+ for(let y=0;y<h;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}
+ if(centerLine){
+  g.strokeStyle=canvasColor('--muted','#777777');
+  g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
+ }
+}
 function drawWaveform(g,w,h){
- g.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line');g.lineWidth=1;
- for(let x=0;x<w;x+=48){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}
- for(let y=0;y<h;y+=48){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}
- if(analyser){const a=new Uint8Array(analyser.fftSize);analyser.getByteTimeDomainData(a);g.strokeStyle=canvasColor('--accent','#e58a2f');g.lineWidth=2.5;g.beginPath();for(let i=0;i<a.length;i++){const x=i/(a.length-1)*w,y=a[i]/255*h;i?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}
+ drawVisualizationGrid(g,w,h,true);
+ if(!analyser){
+  g.fillStyle=canvasColor('--muted','#777777');
+  g.font='800 18px system-ui';g.textAlign='center';
+  g.fillText('Enable Output to display the waveform',w/2,h/2-14);
+  g.fillText('出力を有効にすると波形を表示します',w/2,h/2+14);
+  g.textAlign='start';
+  return;
+ }
+ const data=new Uint8Array(analyser.fftSize);
+ analyser.getByteTimeDomainData(data);
+ g.strokeStyle=canvasColor('--accent','#e58a2f');g.lineWidth=2.5;g.beginPath();
+ for(let i=0;i<data.length;i++){
+  const x=i/(data.length-1)*w,y=data[i]/255*h;
+  i?g.lineTo(x,y):g.moveTo(x,y);
+ }
+ g.stroke();
 }
 function cssRgb(name,fallback){
  const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1186,7 +1223,7 @@ function instrumentPhysicsTarget(){
 function updateReactivePhysics(now){
  ensureReactiveNodes();
  const dt=Math.min(.033,Math.max(.001,(now-(reactive.lastTime||now))/1000));reactive.lastTime=now;
- const target=instrumentPhysicsTarget(),notes=[...voices.values()];
+ const target=instrumentPhysicsTarget(),notes=[...activeNotes].map(([n,velocity])=>({n,velocity}));
  reactive.targetRoughness=target.roughness;
  reactive.roughness+=(reactive.targetRoughness-reactive.roughness)*(1-Math.exp(-dt*2.2));
  reactive.targetEnergy*=Math.exp(-dt*(.10+target.damping*.045));
@@ -1210,7 +1247,7 @@ function updateReactivePhysics(now){
  }
 }
 function updateReactiveBlobs(dt){
- const active=voices.size>0;reactive.targetGrowth*=Math.exp(-dt*(active?.025:.16));reactive.growth+=(reactive.targetGrowth-reactive.growth)*(1-Math.exp(-dt*(active?1.8:.7)));
+ const active=activeNotes.size>0;reactive.targetGrowth*=Math.exp(-dt*(active?.025:.16));reactive.growth+=(reactive.targetGrowth-reactive.growth)*(1-Math.exp(-dt*(active?1.8:.7)));
  const attraction=active?.010:.004,centerPull=active?.006:.012;
  for(let i=0;i<reactive.blobs.length;i++){const b=reactive.blobs[i];b.r+=(b.targetR*(1+reactive.growth*.22)-b.r)*(1-Math.exp(-dt*2.3));b.vx+=-b.x*centerPull*dt*60;b.vy+=-b.y*centerPull*dt*60;
   for(let j=i+1;j<reactive.blobs.length;j++){const c=reactive.blobs[j],dx=c.x-b.x,dy=c.y-b.y,d=Math.hypot(dx,dy)+.0001,desired=(b.r+c.r)*.58;if(d<.52){const f=(d-desired)*attraction;b.vx+=dx/d*f;b.vy+=dy/d*f;c.vx-=dx/d*f;c.vy-=dy/d*f}if(d<desired*.72&&reactive.blobs.length>8){const total=b.r*b.r+c.r*c.r;b.x=(b.x*b.r*b.r+c.x*c.r*c.r)/total;b.y=(b.y*b.r*b.r+c.y*c.r*c.r)/total;b.r=Math.sqrt(total)*.88;b.targetR=Math.max(b.targetR,c.targetR)*1.12;b.vx=(b.vx+c.vx)*.45;b.vy=(b.vy+c.vy)*.45;c.life=0}}
@@ -1281,8 +1318,8 @@ function setInstrument(value){
  ui.instrumentHeroSelect.value=value;
  ui.instrumentHeroName.textContent=preset[value].label;
  panic();
- applySoundPreset(value);
- updateAttackAvailability();
+ applySoundControlPreset(value);
+ updateControlAvailability(value);
  updateHarmony();
 }
 ui.instrument.addEventListener('change',()=>setInstrument(ui.instrument.value));
@@ -1295,7 +1332,7 @@ ui.instrumentHeroSelect.addEventListener('change',()=>setInstrument(ui.instrumen
 document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{
  visualMode=button.dataset.view;
  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===button));
- ui.viewCaption.textContent=visualMode==='waveform'?'Live audio output':visualMode==='midi'?'Recent MIDI note history':'Sound-reactive form';
+ ui.viewCaption.textContent=visualMode==='waveform'?'Live audio output':visualMode==='midi'?'Recent MIDI note history':'???';
 }));ui.master.addEventListener('input',()=>{if(master&&ctx)master.gain.setTargetAtTime(+ui.master.value,ctx.currentTime,.02)});ui.reverb.addEventListener('input',updateReverb);window.addEventListener('resize',()=>requestAnimationFrame(resizeScope));
 window.addEventListener('blur',panic);
 if('ResizeObserver' in window){
@@ -1310,10 +1347,8 @@ applyTheme(localStorage.getItem('midi-theme')||'dark');setupKnobs();validateSoun
 ui.instrumentCategory.value=categoryForInstrument(ui.instrument.value);
 populateInstrumentOptions(ui.instrumentCategory.value,ui.instrument.value);
 setInstrument(ui.instrument.value);
-requestAnimationFrame(()=>{
- resizeScope();
- requestAnimationFrame(drawScope);
-});
+resizeScope();
+drawScope();
 requestAnimationFrame(animateTheme);
 </script>
 </body>
