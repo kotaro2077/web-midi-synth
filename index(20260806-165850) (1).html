@@ -63,17 +63,17 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 
 /* Updated top instrument view and visual modes */
 :root[data-theme="light"]{
-  --bg-a:#e7d1a1;
-  --bg-b:#d58b36;
-  --bg-c:#efe0b8;
-  --accent:#c84f12;
-  --accent2:#e1a400;
-  --panel:rgba(248,242,226,.72);
-  --panel-strong:rgba(255,248,228,.88);
-  --line:#775b35;
-  --text:#1a1209;
-  --muted:#59462e;
-  --surface:#ead8b1;
+  --bg-a:#d8b56a;
+  --bg-b:#a95419;
+  --bg-c:#e3c77d;
+  --accent:#9f310b;
+  --accent2:#8a6500;
+  --panel:rgba(244,226,180,.88);
+  --panel-strong:rgba(250,235,195,.96);
+  --line:#60401f;
+  --text:#160d05;
+  --muted:#49321d;
+  --surface:#d8b86f;
 }
 .topbar{grid-template-columns:330px minmax(0,1fr) 70px}
 .instrument-hero{
@@ -131,6 +131,8 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 }
 .visual-stage{position:relative}
 #scope{height:340px}
+.visual-stage{background:var(--surface)}
+#scope{filter:saturate(.82) contrast(.96)}
 .view-caption{
   position:absolute;
   left:14px;
@@ -1115,8 +1117,8 @@ function bindKey(k,n){k.addEventListener('pointerdown',async e=>{e.preventDefaul
 function buildKeyboard(start=12,end=96){ui.keyboard.innerHTML='';const ww=44,bw=28,octs=(end-start)/12;ui.keyboard.style.width=`${octs*7*ww+ww}px`;const bc={1:1,3:2,6:4,8:5,10:6},wm={0:0,2:1,4:2,5:3,7:4,9:5,11:6};for(let n=start;n<=end;n++){const pc=n%12,oct=Math.floor((n-start)/12),black=pc in bc,k=document.createElement('div');k.className=`key ${black?'black':'white'}`;k.dataset.note=n;k.textContent=noteName(n);bindKey(k,n);if(black){k.style.left=`${(oct*7+bc[pc])*ww-bw/2}px`;k.style.width=`${bw}px`}else{k.style.left=`${(oct*7+wm[pc])*ww}px`;k.style.width=`${ww}px`}ui.keyboard.appendChild(k)}}
 const theme={current:[10,9,7,23,17,11,5,5,4,255,159,67,255,209,102],target:[10,9,7,23,17,11,5,5,4,255,159,67,255,209,102]};
 function hsl(h,s,l){s/=100;l/=100;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(h/60%2-1)),m=l-c/2;let r=0,g=0,b=0;if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else[r,g,b]=[c,0,x];return[(r+m)*255,(g+m)*255,(b+m)*255]}
-function setTheme(root,vel){const p=preset[ui.instrument.value],light=document.documentElement.dataset.theme==='light',base=(p.theme[0]+(root??0)*2)%60+18,bh=(p.theme[1]+(root??0)*2)%60+18;const A=hsl(base,light?24+vel*18:30+vel*22,light?94-vel*5:6+vel*4),B=hsl(bh,light?28+vel*18:34+vel*24,light?85-vel*7:12+vel*5),C=hsl((base+10)%70,light?12:18,light?97:4),D=hsl(base,70,58),E=hsl(bh,75,62);theme.target=[...A,...B,...C,...D,...E]}
-function animateTheme(){for(let i=0;i<theme.current.length;i++)theme.current[i]+=(theme.target[i]-theme.current[i])*.03;const c=theme.current,rgb=i=>`rgb(${c[i]|0},${c[i+1]|0},${c[i+2]|0})`;document.documentElement.style.setProperty('--bg-a',rgb(0));document.documentElement.style.setProperty('--bg-b',rgb(3));document.documentElement.style.setProperty('--bg-c',rgb(6));document.documentElement.style.setProperty('--accent',rgb(9));document.documentElement.style.setProperty('--accent2',rgb(12));requestAnimationFrame(animateTheme)}
+function setTheme(root,vel){const p=preset[ui.instrument.value],light=document.documentElement.dataset.theme==='light',base=(p.theme[0]+(root??0)*2)%60+18,bh=(p.theme[1]+(root??0)*2)%60+18;const A=hsl(base,light?42+vel*16:30+vel*22,light?73-vel*6:6+vel*4),B=hsl(bh,light?52+vel*18:34+vel*24,light?57-vel*6:12+vel*5),C=hsl((base+10)%70,light?34:18,light?82:4),D=hsl(base,light?78:70,light?34:58),E=hsl(bh,light?82:75,light?30:62);theme.target=[...A,...B,...C,...D,...E]}
+function animateTheme(){for(let i=0;i<theme.current.length;i++)theme.current[i]+=(theme.target[i]-theme.current[i])*.009;const c=theme.current,rgb=i=>`rgb(${c[i]|0},${c[i+1]|0},${c[i+2]|0})`;document.documentElement.style.setProperty('--bg-a',rgb(0));document.documentElement.style.setProperty('--bg-b',rgb(3));document.documentElement.style.setProperty('--bg-c',rgb(6));document.documentElement.style.setProperty('--accent',rgb(9));document.documentElement.style.setProperty('--accent2',rgb(12));requestAnimationFrame(animateTheme)}
 function applyTheme(mode){document.documentElement.dataset.theme=mode;ui.themeButton.textContent=mode==='light'?'☾':'☀';localStorage.setItem('midi-theme',mode);updateHarmony()}
 function setupKnobs(){document.querySelectorAll('.knob').forEach(knob=>{const input=$(knob.dataset.for),out=$(`${knob.dataset.for}Out`),min=+input.min,max=+input.max,step=+input.step||.01;const render=()=>{const p=(+input.value-min)/(max-min);knob.style.setProperty('--p',p);knob.style.setProperty('--angle',`${-135+p*270}deg`);out.textContent=`${Math.round((+input.value)/(max===1?1:(knob.dataset.for==='reverb'?.75:1))*100)}%`};let y=0,v=0,drag=false;knob.addEventListener('pointerdown',e=>{drag=true;y=e.clientY;v=+input.value;knob.setPointerCapture(e.pointerId)});knob.addEventListener('pointermove',e=>{if(!drag)return;input.value=Math.min(max,Math.max(min,v+(y-e.clientY)*(max-min)/180));input.dispatchEvent(new Event('input'))});['pointerup','pointercancel'].forEach(ev=>knob.addEventListener(ev,()=>drag=false));knob.addEventListener('wheel',e=>{e.preventDefault();input.value=Math.min(max,Math.max(min,+input.value+(e.deltaY<0?step:-step)));input.dispatchEvent(new Event('input'))},{passive:false});input.addEventListener('input',render);render()})}
 function resizeScope(){
@@ -1162,6 +1164,7 @@ function drawVisualizationGrid(g,w,h,centerLine=false){
   g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
  }
 }
+let softenedWaveform=null;
 function drawWaveform(g,w,h){
  drawVisualizationGrid(g,w,h,true);
  if(!analyser){
@@ -1174,9 +1177,11 @@ function drawWaveform(g,w,h){
  }
  const data=new Uint8Array(analyser.fftSize);
  analyser.getByteTimeDomainData(data);
+ if(!softenedWaveform||softenedWaveform.length!==data.length)softenedWaveform=Float32Array.from(data);
+ for(let i=0;i<data.length;i++)softenedWaveform[i]+=(data[i]-softenedWaveform[i])*.16;
  g.strokeStyle=canvasColor('--accent','#e58a2f');g.lineWidth=2.5;g.beginPath();
  for(let i=0;i<data.length;i++){
-  const x=i/(data.length-1)*w,y=data[i]/255*h;
+  const x=i/(data.length-1)*w,y=softenedWaveform[i]/255*h;
   i?g.lineTo(x,y):g.moveTo(x,y);
  }
  g.stroke();
@@ -1198,10 +1203,10 @@ function drawMidiHistory(g,w,h,now){
    const age=now-e.time,x=w-(age/range)*w,y=h-(e.note-low)/(high-low)*h;
    const barW=Math.max(8,e.duration/range*w),barH=7+e.velocity*13;
    const mix=e.velocity,clr=accent.map((v,i)=>v*(1-mix)+accent2[i]*mix);
-   g.globalAlpha=Math.max(.13,1-age/range);
-   g.fillStyle=rgba(clr,.92);
+   g.globalAlpha=Math.max(.12,.78*(1-age/range));
+   g.fillStyle=rgba(clr,.82);
    g.fillRect(x-barW,y-barH/2,barW,barH);
-   g.fillStyle=rgba([255,255,255],.65);g.fillRect(x-2,y-barH/2,2,barH);
+   g.fillStyle=rgba(accent2,.38);g.fillRect(x-2,y-barH/2,2,barH);
  }
  g.globalAlpha=1;
 }
