@@ -235,9 +235,139 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
   background:var(--surface);
 }
 
+.visual-stage.object-expandable{cursor:zoom-in}
+.mystery-fullscreen-button{
+  position:absolute;
+  top:max(12px,env(safe-area-inset-top));
+  right:max(12px,env(safe-area-inset-right));
+  z-index:4;
+  display:none;
+  width:48px;
+  height:48px;
+  padding:0;
+  background:color-mix(in srgb,var(--panel-strong) 90%,transparent);
+  color:var(--text);
+  font-size:1.8rem;
+  line-height:1;
+  cursor:pointer;
+}
+body.mystery-view-open{overflow:hidden}
+.wave-card.mystery-fullscreen{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  margin:0;
+  background:var(--surface);
+  overflow:hidden;
+}
+.wave-card.mystery-fullscreen .view-switch{display:none}
+.wave-card.mystery-fullscreen .visual-stage{
+  width:100%;
+  height:100%;
+  min-height:0;
+  cursor:zoom-out;
+}
+.wave-card.mystery-fullscreen #scope{height:100%!important;min-height:0}
+.wave-card.mystery-fullscreen .mystery-fullscreen-button{display:block}
+.wave-card.mystery-fullscreen .view-caption{
+  left:max(14px,env(safe-area-inset-left));
+  bottom:max(12px,env(safe-area-inset-bottom));
+}
+
 .device-group{display:grid;gap:7px;padding:9px;background:var(--panel-strong)}
 .device-field{display:grid;gap:5px}.device-field>span,.device-title{color:var(--muted);font-size:.78rem;font-weight:800;letter-spacing:.06em}
 .device-group .status-box{font-size:.78rem}
+
+/* Responsive layout */
+.topbar>*{min-width:0}
+.settings select,.instrument-picker select{max-width:100%}
+
+@media(max-width:1200px){
+  main{width:min(100% - 20px,960px);padding-top:10px}
+  .topbar{
+    position:relative;
+    grid-template-columns:minmax(0,1fr) 56px;
+    gap:8px;
+  }
+  .settings{grid-column:1;grid-row:1}
+  .theme-cell{
+    position:static;
+    grid-column:2;
+    grid-row:1;
+    padding:6px;
+    align-self:start;
+  }
+  .instrument-hero{grid-column:1/-1;grid-row:2}
+  .content,.left{grid-template-columns:minmax(0,1fr)}
+}
+
+@media(max-width:720px){
+  main{width:100%;padding:0 8px 16px}
+  .topbar,.content,.left{gap:8px}
+  .topbar{grid-template-columns:minmax(0,1fr) 52px}
+  .settings{padding:8px}
+  .theme-cell{padding:4px}
+  .theme-button{width:44px;height:44px}
+  .device-group{padding:8px}
+  button,select{min-height:44px}
+
+  .instrument-hero{gap:12px;padding:14px 12px}
+  .instrument-hero-name{
+    font-size:clamp(1.8rem,10vw,2.7rem);
+    line-height:1;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .instrument-hint{margin-top:5px}
+  .instrument-picker{grid-template-columns:minmax(0,1fr);gap:8px}
+  .category-buttons{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .category-buttons button{padding:8px;font-size:.86rem;line-height:1.2;text-align:center;border-left:0;border-bottom:4px solid transparent}
+  .category-buttons button.active{border-left:0;border-bottom-color:var(--accent)}
+  .instrument-hero select{min-width:0;padding:12px;font-size:1rem}
+
+  .keyboard-panel{margin-top:8px;padding:6px 0}
+  .keyboard-scroll{overscroll-behavior-x:contain;scrollbar-width:thin}
+  .keyboard{height:190px}
+  .key.black{height:116px}
+
+  .content{margin-top:8px}
+  .view-switch{overflow-x:auto;gap:4px;padding:6px}
+  .view-switch button{flex:1 0 auto;padding:9px 10px;font-size:.9rem}
+  .visual-stage{min-height:220px}
+  #scope{height:clamp(220px,42vh,320px);min-height:220px}
+  .view-caption{left:8px;bottom:8px;max-width:calc(100% - 16px);font-size:.8rem}
+
+  .card,.chord-card{padding:10px}
+  .knob-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+  .knob-control{min-width:0;padding:9px 4px}
+  .knob-label{font-size:.9rem}
+  .chord-main{grid-template-columns:minmax(0,1fr)}
+  .info-box{min-width:0;padding:11px}
+  .info-box strong{overflow-wrap:anywhere;font-size:1.35rem}
+  .full{grid-column:auto}
+  .history-item,.alternates{font-size:1rem;overflow-wrap:anywhere}
+}
+
+@media(max-width:380px){
+  main{padding-inline:5px}
+  .topbar{grid-template-columns:minmax(0,1fr) 48px;gap:5px}
+  .settings,.instrument-hero{padding-inline:7px}
+  .theme-cell{padding:2px}
+  .category-buttons button{font-size:.78rem;padding-inline:4px}
+  .knob{width:72px;height:72px}
+  .knob::after{top:12px;height:24px;transform-origin:50% 24px}
+  .knob-value{font-size:1.05rem}
+  .sound-controls-head{align-items:flex-start}
+  .reset-sound-button{padding-inline:10px}
+}
+
+@media(hover:none) and (pointer:coarse){
+  button,.key,.knob{touch-action:manipulation}
+  .knob{touch-action:none}
+}
 </style>
 </head>
 <body>
@@ -298,9 +428,10 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
         <button type="button" data-view="midi">MIDI History</button>
         <button type="button" data-view="object" aria-label="Mystery visualization">???</button>
       </div>
-      <div class="visual-stage">
+      <div id="visualStage" class="visual-stage">
         <canvas id="scope" width="960" height="360"></canvas><div id="canvasError" class="canvas-error" hidden>Visualization unavailable</div>
         <div id="viewCaption" class="view-caption">Live audio output</div>
+        <button id="mysteryFullscreenButton" class="mystery-fullscreen-button" type="button" aria-label="Exit full screen">×</button>
       </div>
     </section>
     <section class="panel card">
@@ -334,7 +465,7 @@ button{border:0!important;border-radius:0!important}.settings select,.instrument
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
+const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),visualStage:$('visualStage'),mysteryFullscreenButton:$('mysteryFullscreenButton'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
 let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
 const voices=new Map(),activeNotes=new Map(),heldPointers=new Map(),history=[],midiTrail=[];
 const reactive={nodes:[],blobs:[],pitchPoints:new Map(),lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0,chordQuality:'single',chordSince:0,previousRoot:null,transitionInterval:0,transitionPulse:0,eventSeed:1,lastNoteAt:0,speedEnergy:0};
@@ -1360,6 +1491,24 @@ function drawReactiveObject(g,w,h,now){
  if(reactive.transitionPulse>.04&&reactive.previousRoot!=null){const style=chordVisualStyle(),direction=Math.sign(reactive.transitionInterval||1),progress=1-reactive.transitionPulse,r=scale*(.08+progress*.58);g.strokeStyle=rgba(hsl(style.hue,65,52),reactive.transitionPulse*.28);g.lineWidth=1.5;g.setLineDash([4+Math.abs(reactive.transitionInterval),7]);g.beginPath();g.arc(cx,cy,r,direction>0?-Math.PI*.75:Math.PI*.25,direction>0?Math.PI*.75:-Math.PI*.75,direction<0);g.stroke();g.setLineDash([])}
  drawPitchConstellation(g,w,h,now);
 }
+let pixelObjectCanvas=null,pixelObjectContext=null;
+function drawPixelReactiveObject(g,w,h,now){
+ const pixelSize=4,lowW=Math.max(80,Math.ceil(w/pixelSize)),lowH=Math.max(70,Math.ceil(h/pixelSize));
+ if(!pixelObjectCanvas){pixelObjectCanvas=document.createElement('canvas');pixelObjectContext=pixelObjectCanvas.getContext('2d')}
+ if(pixelObjectCanvas.width!==lowW||pixelObjectCanvas.height!==lowH){pixelObjectCanvas.width=lowW;pixelObjectCanvas.height=lowH}
+ const pg=pixelObjectContext;
+ pg.globalAlpha=.5;
+ pg.fillStyle=canvasColor('--surface','#111111');
+ pg.fillRect(0,0,lowW,lowH);
+ pg.globalAlpha=1;
+ drawReactiveObject(pg,lowW,lowH,now);
+ g.clearRect(0,0,w,h);
+ g.fillStyle=canvasColor('--surface','#111111');
+ g.fillRect(0,0,w,h);
+ g.imageSmoothingEnabled=false;
+ g.drawImage(pixelObjectCanvas,0,0,lowW,lowH,0,0,w,h);
+ g.imageSmoothingEnabled=true;
+}
 function drawScope(now=performance.now()){
  try{
    if(!resizeScope()){requestAnimationFrame(drawScope);return}
@@ -1376,6 +1525,7 @@ function drawScope(now=performance.now()){
    g.globalAlpha=1;
    if(visualMode==='waveform')drawWaveform(g,w,h);
    else if(visualMode==='midi')drawMidiHistory(g,w,h,now);
+   else if(ui.instrument.value==='bit8')drawPixelReactiveObject(g,w,h,now);
    else drawReactiveObject(g,w,h,now);
  }catch(error){
    console.error('Visualization error',error);
@@ -1411,10 +1561,48 @@ document.querySelectorAll('[data-category]').forEach(button=>button.addEventList
  setInstrument(ui.instrumentHeroSelect.value);
 }));
 ui.instrumentHeroSelect.addEventListener('change',()=>setInstrument(ui.instrumentHeroSelect.value));ui.resetSoundButton.addEventListener('click',resetSoundControls);
+const waveCard=ui.visualStage.closest('.wave-card');
+let mysteryReturnFocus=null;
+function setMysteryFullscreen(open){
+ if(visualMode!=='object')open=false;
+ const isOpen=waveCard.classList.contains('mystery-fullscreen');
+ if(open===isOpen)return;
+ if(open)mysteryReturnFocus=document.activeElement;
+ waveCard.classList.toggle('mystery-fullscreen',open);
+ document.body.classList.toggle('mystery-view-open',open);
+ ui.visualStage.setAttribute('aria-expanded',String(open));
+ ui.mysteryFullscreenButton.setAttribute('aria-hidden',String(!open));
+ requestAnimationFrame(()=>{
+  resizeScope();
+  if(open)ui.mysteryFullscreenButton.focus({preventScroll:true});
+  else if(mysteryReturnFocus?.isConnected)mysteryReturnFocus.focus({preventScroll:true});
+ });
+}
+function updateMysteryInteraction(){
+ const expandable=visualMode==='object';
+ ui.visualStage.classList.toggle('object-expandable',expandable);
+ ui.visualStage.tabIndex=expandable?0:-1;
+ ui.visualStage.setAttribute('role',expandable?'button':'presentation');
+ ui.visualStage.setAttribute('aria-label',expandable?'Open mystery visualization in full screen':'Visualization');
+ ui.visualStage.setAttribute('aria-expanded','false');
+}
+ui.visualStage.addEventListener('click',event=>{
+ if(visualMode!=='object'||event.target===ui.mysteryFullscreenButton)return;
+ setMysteryFullscreen(!waveCard.classList.contains('mystery-fullscreen'));
+});
+ui.visualStage.addEventListener('keydown',event=>{
+ if(visualMode!=='object'||event.target===ui.mysteryFullscreenButton||(event.key!=='Enter'&&event.key!==' '))return;
+ event.preventDefault();
+ setMysteryFullscreen(!waveCard.classList.contains('mystery-fullscreen'));
+});
+ui.mysteryFullscreenButton.addEventListener('click',event=>{event.stopPropagation();setMysteryFullscreen(false)});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&waveCard.classList.contains('mystery-fullscreen'))setMysteryFullscreen(false)});
 document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{
+ setMysteryFullscreen(false);
  visualMode=button.dataset.view;
  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===button));
  ui.viewCaption.textContent=visualMode==='waveform'?'Live audio output':visualMode==='midi'?'Recent MIDI note history':'???';
+ updateMysteryInteraction();
 }));ui.master.addEventListener('input',()=>{if(master&&ctx)master.gain.setTargetAtTime(+ui.master.value,ctx.currentTime,.02)});ui.reverb.addEventListener('input',updateReverb);window.addEventListener('resize',()=>requestAnimationFrame(resizeScope));
 window.addEventListener('blur',panic);
 if('ResizeObserver' in window){
@@ -1425,7 +1613,7 @@ document.addEventListener('visibilitychange',()=>{
  if(!document.hidden)requestAnimationFrame(resizeScope);
 });
 window.addEventListener('error',event=>console.error('Application error:',event.error||event.message));
-applyTheme(localStorage.getItem('midi-theme')||'dark');setupKnobs();validateSoundSystem();buildKeyboard();resizeScope();
+applyTheme(localStorage.getItem('midi-theme')||'dark');setupKnobs();updateMysteryInteraction();validateSoundSystem();buildKeyboard();resizeScope();
 ui.instrumentCategory.value=categoryForInstrument(ui.instrument.value);
 populateInstrumentOptions(ui.instrumentCategory.value,ui.instrument.value);
 setInstrument(ui.instrument.value);
