@@ -434,6 +434,7 @@ body.mystery-view-open{overflow:hidden}
     <section class="panel wave-card">
       <div class="view-switch">
         <button type="button" data-view="waveform" class="active">Waveform</button>
+        <button type="button" data-view="frequency">Frequency</button>
         <button type="button" data-view="midi">MIDI History</button>
         <button type="button" data-view="object" aria-label="Mystery visualization">???</button>
       </div>
@@ -446,7 +447,7 @@ body.mystery-view-open{overflow:hidden}
     <section class="panel card">
       <div class="sound-controls-head"><h2>Sound Controls</h2><button id="resetSoundButton" class="reset-sound-button" type="button">Reset</button></div>
       <select id="instrument" class="instrument-select" hidden>
-        <option value="piano">Cheap Piano</option><option value="epiano">Electric Piano</option><option value="glock">Glockenspiel</option><option value="xylophone">Xylophone</option><option value="organ">Organ</option><option value="accordion">Melodica</option><option value="harmonica">Harmonica</option><option value="bagpipe">Bagpipe</option><option value="acousticGuitar">Acoustic Guitar</option><option value="electricClean">Electric Guitar — Clean</option><option value="electricOverdrive">Electric Guitar — Overdrive</option><option value="electricHighGain">Electric Guitar — High Gain</option><option value="harp">Harp</option><option value="clarinet">Clarinet</option><option value="sax">Alto Sax</option><option value="recorder">Recorder</option><option value="shakuhachi">Bamboo Flute</option><option value="flute">Flute</option><option value="ocarina">Ocarina</option><option value="orchestraHit">Orchestra Hit</option><option value="fmCrystal">Digital Crystal</option><option value="retroNoise">Bit Noise</option><option value="coinSpark">Coin Spark</option><option value="laserPluck">Laser Pluck</option><option value="dungeonDrone">Dungeon Drone</option><option value="pixelArp">Pixel Arpeggio</option><option value="gameKick">Arcade Kick</option><option value="warpTone">Warp Tone</option><option value="oboe">Oboe</option><option value="trumpet">Trumpet</option><option value="strings">Strings</option><option value="pad">Ambient Pad</option><option value="sineSynth">Sine</option><option value="triangleSynth">Triangle</option><option value="sawSynth">Sawtooth</option><option value="squareSynth">Square</option><option value="bit8">8-Bit</option><option value="synthLead">Synth Lead</option><option value="synthBass">Synth Bass</option><option value="synthPluck">Synth Pluck</option>
+        <option value="piano">Cheap Piano</option><option value="epiano">Electric Piano — Rhodes</option><option value="epianoFM">Electric Piano — FM</option><option value="epianoWurli">Electric Piano — Wurlitzer</option><option value="glock">Glockenspiel</option><option value="xylophone">Xylophone</option><option value="organ">Organ</option><option value="accordion">Melodica</option><option value="harmonica">Harmonica</option><option value="bagpipe">Bagpipe</option><option value="acousticGuitar">Acoustic Guitar</option><option value="electricClean">Electric Guitar — Clean</option><option value="electricOverdrive">Electric Guitar — Overdrive</option><option value="electricHighGain">Electric Guitar — High Gain</option><option value="harp">Harp</option><option value="clarinet">Clarinet</option><option value="sax">Alto Sax</option><option value="recorder">Recorder</option><option value="shakuhachi">Bamboo Flute</option><option value="flute">Flute</option><option value="ocarina">Ocarina</option><option value="orchestraHit">Orchestra Hit</option><option value="fmCrystal">Digital Crystal</option><option value="retroNoise">Bit Noise</option><option value="coinSpark">Coin Spark</option><option value="laserPluck">Laser Pluck</option><option value="dungeonDrone">Dungeon Drone</option><option value="pixelArp">Pixel Arpeggio</option><option value="gameKick">Arcade Kick</option><option value="warpTone">Warp Tone</option><option value="oboe">Oboe</option><option value="trumpet">Trumpet</option><option value="strings">Strings</option><option value="pad">Ambient Pad</option><option value="sineSynth">Sine</option><option value="triangleSynth">Triangle</option><option value="sawSynth">Sawtooth</option><option value="squareSynth">Square</option><option value="bit8">8-Bit</option><option value="synthLead">Synth Lead</option><option value="synthBass">Synth Bass</option><option value="synthPluck">Synth Pluck</option>
       </select>
       <div class="knob-grid">
         <div class="knob-control"><div class="knob-label">Volume</div><input id="master" class="hidden-range" type="range" min="0" max="2" value="0.7" step="0.01"><div class="knob" data-for="master" tabindex="0"></div><div class="knob-value" id="masterOut">70%</div></div>
@@ -497,7 +498,8 @@ function periodic(real,imag){return {wave:[real,imag]}}
 
 const instrumentGroups={
  keys:[
-  ['piano','Cheap Piano'],['epiano','Electric Piano'],['organ','Organ'],['accordion','Melodica'],['harmonica','Harmonica']
+  ['piano','Cheap Piano'],['epiano','Electric Piano — Rhodes'],['epianoFM','Electric Piano — FM'],
+  ['epianoWurli','Electric Piano — Wurlitzer'],['organ','Organ'],['accordion','Melodica'],['harmonica','Harmonica']
  ],
  winds:[
   ['clarinet','Clarinet'],['sax','Alto Sax'],['recorder','Recorder'],['shakuhachi','Bamboo Flute'],
@@ -541,23 +543,25 @@ function populateInstrumentOptions(category,selected){
 
 const preset={
  piano:{label:'Cheap Piano',model:'simplePiano',parts:[],attackControl:false,a:.001,d:.95,s:.025,r:.52,cut:7200,q:.28,noise:0,vib:0,outputGain:.86,theme:[28,48]},
- epiano:{label:'Electric Piano',model:'simpleEPiano',parts:[],attackControl:false,a:.002,d:1.10,s:.065,r:.78,cut:5600,q:.34,noise:0,vib:0,outputGain:.82,theme:[30,52]},
+ epiano:{label:'Electric Piano — Rhodes',model:'electricPiano',epType:'rhodes',parts:[],attackControl:false,a:.002,d:1.35,s:.055,r:.92,cut:6200,q:.32,noise:0,vib:0,outputGain:.82,theme:[30,52]},
+ epianoFM:{label:'Electric Piano — FM',model:'electricPiano',epType:'fm',parts:[],attackControl:false,a:.001,d:1.05,s:.035,r:1.05,cut:10500,q:.28,noise:0,vib:0,outputGain:.76,theme:[38,58]},
+ epianoWurli:{label:'Electric Piano — Wurlitzer',model:'electricPiano',epType:'wurli',parts:[],attackControl:false,a:.002,d:1.18,s:.075,r:.72,cut:5200,q:.46,noise:0,vib:0,outputGain:.78,theme:[20,46]},
  glock:{label:'Glockenspiel',model:'glock',parts:[],attackControl:false,a:.001,d:1.5,s:.008,r:2.2,cut:13000,q:.5,noise:0,vib:0,outputGain:0.76,theme:[45,58]},
  organ:{label:'Organ',parts:[[1,'sine',1],[2,'sine',.55],[3,'sine',.35],[4,'sine',.18],[6,'sine',.12]],a:.025,d:.08,s:.88,r:.22,cut:9000,q:.2,noise:0,vib:4.8,outputGain:0.72,theme:[42,62]},
  accordion:{label:'Melodica',model:'melodica',parts:[],a:.035,d:.12,s:.90,r:.22,cut:4100,q:.58,noise:0,vib:0,outputGain:.80,theme:[24,46]},
  harmonica:{label:'Harmonica',model:'harmonica',parts:[],a:.028,d:.10,s:.91,r:.24,cut:5200,q:.72,noise:.012,vib:5.6,vibDepth:2.8,outputGain:.76,theme:[30,48]},
  xylophone:{label:'Round Xylophone',model:'xylophone',parts:[],a:.001,d:.82,s:.001,r:.34,cut:5200,q:.38,noise:0,vib:0,attackControl:false,outputGain:0.8,theme:[38,54]},
- bagpipe:{label:'Highland Bagpipe',model:'bagpipe',parts:[],a:.085,d:.12,s:.95,r:.38,cut:4700,q:.74,noise:0,vib:0,outputGain:.62,theme:[28,48]},
+ bagpipe:{label:'Highland Bagpipe',model:'bagpipe',parts:[],a:.008,d:.10,s:.97,r:.18,cut:6800,q:.74,noise:0,vib:0,outputGain:.68,theme:[28,48]},
  acousticGuitar:{label:'Acoustic Guitar',model:'acousticGuitar',parts:[],attackControl:false,a:.003,d:1.5,s:.012,r:.9,cut:6500,q:.48,noise:.018,vib:0,outputGain:0.88,theme:[30,50]},
  electricClean:{label:'Electric Guitar — Clean',model:'electricGuitar',guitarMode:'clean',parts:[],attackControl:false,a:.001,d:.82,s:.10,r:.48,cut:7200,q:.55,noise:.003,vib:0,outputGain:.80,theme:[24,46]},
  electricOverdrive:{label:'Electric Guitar — Overdrive',model:'electricGuitar',guitarMode:'overdrive',parts:[],attackControl:false,a:.001,d:1.02,s:.15,r:.58,cut:5900,q:.78,noise:.004,vib:0,outputGain:.72,theme:[18,42]},
  electricHighGain:{label:'Electric Guitar — High Gain',model:'electricGuitar',guitarMode:'highgain',parts:[],attackControl:false,a:.001,d:1.12,s:.18,r:.64,cut:4700,q:.88,noise:.005,vib:0,outputGain:.66,theme:[12,36]},
  harp:{label:'Harp',model:'harp',parts:[],attackControl:false,a:.001,d:1.8,s:.012,r:1.6,cut:9200,q:.34,noise:0,vib:0,outputGain:.82,theme:[42,58]},
  clarinet:{label:'Clarinet',parts:[[1,'square',.62],[3,'sine',.22],[5,'sine',.1]],a:.07,d:.16,s:.76,r:.3,cut:3400,q:2.6,noise:.025,vib:5.1,vibDepth:3,formant:[850,1650],outputGain:0.82,theme:[30,50]},
- sax:{label:'Alto Sax',parts:[[1,'custom',.68],[1.003,'custom',.18],[2,'sine',.08]],custom:[0,1,.62,.42,.26,.19,.13,.09,.06,.04],a:.055,d:.18,s:.78,r:.34,cut:4700,q:2.5,noise:.035,vib:5.4,vibDepth:8,formant:[650,1250],outputGain:0.7,theme:[18,38]},
+ sax:{label:'Alto Sax',model:'altoSax',parts:[],a:.042,d:.16,s:.82,r:.30,cut:6800,q:.68,noise:0,vib:0,outputGain:.72,theme:[18,38]},
  trumpet:{label:'Trumpet',model:'trumpet',parts:[],a:.028,d:.16,s:.74,r:.20,cut:6100,q:1.15,noise:.008,vib:5.1,vibDepth:1.7,outputGain:.66,theme:[18,42]},
- recorder:{label:'Recorder',model:'breath',breathType:'recorder',parts:[],a:.045,d:.10,s:.82,r:.24,cut:5400,q:.66,noise:.025,vib:4.5,vibDepth:.85,outputGain:.84,theme:[45,58]},
- shakuhachi:{label:'Bamboo Flute',model:'breath',breathType:'shakuhachi',parts:[],a:.135,d:.18,s:.68,r:.78,cut:3000,q:.62,noise:.090,vib:3.7,vibDepth:5.2,outputGain:.84,theme:[42,52]},
+ recorder:{label:'Recorder',model:'breath',breathType:'recorder',parts:[],a:.026,d:.10,s:.80,r:.20,cut:6500,q:.82,noise:0,vib:6.2,vibDepth:1.15,outputGain:.78,theme:[45,58]},
+ shakuhachi:{label:'Bamboo Flute',model:'breath',breathType:'shakuhachi',parts:[],a:.055,d:.18,s:.66,r:.82,cut:7200,q:.52,noise:0,vib:3.7,vibDepth:4.4,outputGain:.76,theme:[42,52]},
  flute:{label:'Flute',model:'breath',breathType:'flute',parts:[],a:.085,d:.12,s:.80,r:.42,cut:7600,q:.38,noise:.034,vib:4.7,vibDepth:1.2,outputGain:.82,theme:[44,60]},
  ocarina:{label:'Ocarina',model:'breath',breathType:'ocarina',parts:[],a:.050,d:.09,s:.84,r:.30,cut:4300,q:.72,noise:.012,vib:5.2,vibDepth:1.6,outputGain:.84,theme:[34,52]},
  orchestraHit:{label:'Orchestra Hit',model:'orchestraHit',parts:[],attackControl:false,a:.002,d:.42,s:.015,r:.72,cut:7600,q:.82,noise:.012,vib:0,outputGain:0.54,theme:[12,38]},
@@ -584,14 +588,14 @@ const preset={
  synthPluck:{label:'Synth Pluck',attackControl:false,parts:[[1,'triangle',.72],[2,'sine',.2],[3,'sine',.08]],a:.002,d:.3,s:.02,r:.18,cut:4800,q:2.2,noise:.01,vib:0,outputGain:0.7,theme:[42,58]}
 };
 const soundControlPreset={
- piano:{master:.56,brightness:.56,reverb:.14,attack:.25,release:.52,cutoff:.92,resonance:.26},epiano:{master:.54,brightness:.50,reverb:.18,attack:.25,release:.66,cutoff:.82,resonance:.30},glock:{master:.52,brightness:.88,reverb:.46,attack:1,release:1.38,cutoff:1.35,resonance:.35},xylophone:{master:.58,brightness:.48,reverb:.16,attack:1,release:.48,cutoff:.78,resonance:.30},organ:{master:.58,brightness:.55,reverb:.22,attack:.88,release:.48,cutoff:1.05,resonance:.28},accordion:{master:.58,brightness:.56,reverb:.08,attack:.92,release:.48,cutoff:.76,resonance:.46},harmonica:{master:.50,brightness:.58,reverb:.12,attack:.55,release:.52,cutoff:.90,resonance:.62},bagpipe:{master:.45,brightness:.48,reverb:.18,attack:.92,release:.72,cutoff:.72,resonance:.52},acousticGuitar:{master:.62,brightness:.72,reverb:.22,attack:.38,release:.72,cutoff:1.02,resonance:.48},electricClean:{master:.58,brightness:.62,reverb:.06,attack:.30,release:.42,cutoff:.92,resonance:.38},electricOverdrive:{master:.54,brightness:.54,reverb:.045,attack:.30,release:.48,cutoff:.80,resonance:.48},electricHighGain:{master:.50,brightness:.48,reverb:.035,attack:.30,release:.52,cutoff:.68,resonance:.58},harp:{master:.54,brightness:.72,reverb:.38,attack:1,release:1.15,cutoff:1.15,resonance:.28},clarinet:{master:.58,brightness:.48,reverb:.20,attack:.92,release:.66,cutoff:.72,resonance:.82},sax:{master:.52,brightness:.58,reverb:.20,attack:.80,release:.72,cutoff:.78,resonance:.95},recorder:{master:.58,brightness:.70,reverb:.18,attack:.76,release:.52,cutoff:.98,resonance:.58},shakuhachi:{master:.60,brightness:.42,reverb:.42,attack:1.18,release:1.10,cutoff:.62,resonance:.55},flute:{master:.58,brightness:.68,reverb:.30,attack:1.0,release:.80,cutoff:1.12,resonance:.42},ocarina:{master:.56,brightness:.48,reverb:.24,attack:.78,release:.62,cutoff:.84,resonance:.54},orchestraHit:{master:.48,brightness:.62,reverb:.34,attack:.25,release:.78,cutoff:1.02,resonance:.60},fmCrystal:{master:.44,brightness:.88,reverb:.42,attack:.25,release:1.08,cutoff:1.35,resonance:.38},retroNoise:{master:.38,brightness:.72,reverb:.10,attack:.25,release:.34,cutoff:1.05,resonance:.76},coinSpark:{master:.42,brightness:.90,reverb:.24,attack:.25,release:.42,cutoff:1.30,resonance:.34},laserPluck:{master:.42,brightness:.78,reverb:.16,attack:.25,release:.38,cutoff:1.08,resonance:.86},dungeonDrone:{master:.42,brightness:.32,reverb:.50,attack:1.45,release:1.80,cutoff:.48,resonance:.72},pixelArp:{master:.40,brightness:.76,reverb:.12,attack:.25,release:.28,cutoff:1.12,resonance:.46},gameKick:{master:.45,brightness:.36,reverb:.04,attack:.25,release:.25,cutoff:.66,resonance:.42},warpTone:{master:.40,brightness:.62,reverb:.28,attack:.64,release:.72,cutoff:.92,resonance:1.16},oboe:{master:.50,brightness:.52,reverb:.18,attack:.90,release:.62,cutoff:.68,resonance:1.12},trumpet:{master:.48,brightness:.62,reverb:.16,attack:.62,release:.58,cutoff:.82,resonance:.90},strings:{master:.52,brightness:.46,reverb:.40,attack:1.55,release:1.70,cutoff:.68,resonance:.42},pad:{master:.46,brightness:.38,reverb:.58,attack:1.90,release:2.05,cutoff:.56,resonance:.48},sineSynth:{master:.55,brightness:.58,reverb:.20,attack:.75,release:.85,cutoff:1.20,resonance:.28},triangleSynth:{master:.54,brightness:.62,reverb:.18,attack:.70,release:.78,cutoff:1.08,resonance:.34},sawSynth:{master:.45,brightness:.64,reverb:.18,attack:.62,release:.72,cutoff:.92,resonance:1.10},squareSynth:{master:.44,brightness:.60,reverb:.12,attack:.55,release:.58,cutoff:.88,resonance:.78},bit8:{master:.42,brightness:.82,reverb:.08,attack:.28,release:.30,cutoff:1.35,resonance:.30},synthLead:{master:.48,brightness:.68,reverb:.24,attack:.52,release:.72,cutoff:1.08,resonance:1.35},synthBass:{master:.54,brightness:.36,reverb:.08,attack:.30,release:.48,cutoff:.52,resonance:1.55},synthPluck:{master:.50,brightness:.70,reverb:.20,attack:.26,release:.44,cutoff:.92,resonance:.88}
+ piano:{master:.56,brightness:.56,reverb:.14,attack:.25,release:.52,cutoff:.92,resonance:.26},epiano:{master:.54,brightness:.56,reverb:.22,attack:.25,release:.78,cutoff:.92,resonance:.28},epianoFM:{master:.48,brightness:.76,reverb:.30,attack:.25,release:.92,cutoff:1.18,resonance:.24},epianoWurli:{master:.52,brightness:.60,reverb:.16,attack:.25,release:.66,cutoff:.88,resonance:.44},glock:{master:.52,brightness:.88,reverb:.46,attack:1,release:1.38,cutoff:1.35,resonance:.35},xylophone:{master:.58,brightness:.48,reverb:.16,attack:1,release:.48,cutoff:.78,resonance:.30},organ:{master:.58,brightness:.55,reverb:.22,attack:.88,release:.48,cutoff:1.05,resonance:.28},accordion:{master:.58,brightness:.56,reverb:.08,attack:.92,release:.48,cutoff:.76,resonance:.46},harmonica:{master:.50,brightness:.58,reverb:.12,attack:.55,release:.52,cutoff:.90,resonance:.62},bagpipe:{master:.45,brightness:.48,reverb:.18,attack:.92,release:.72,cutoff:.72,resonance:.52},acousticGuitar:{master:.62,brightness:.72,reverb:.22,attack:.38,release:.72,cutoff:1.02,resonance:.48},electricClean:{master:.58,brightness:.62,reverb:.06,attack:.30,release:.42,cutoff:.92,resonance:.38},electricOverdrive:{master:.54,brightness:.54,reverb:.045,attack:.30,release:.48,cutoff:.80,resonance:.48},electricHighGain:{master:.50,brightness:.48,reverb:.035,attack:.30,release:.52,cutoff:.68,resonance:.58},harp:{master:.54,brightness:.72,reverb:.38,attack:1,release:1.15,cutoff:1.15,resonance:.28},clarinet:{master:.58,brightness:.48,reverb:.20,attack:.92,release:.66,cutoff:.72,resonance:.82},sax:{master:.50,brightness:.56,reverb:.18,attack:.72,release:.68,cutoff:.92,resonance:.62},recorder:{master:.58,brightness:.70,reverb:.18,attack:.76,release:.52,cutoff:.98,resonance:.58},shakuhachi:{master:.60,brightness:.42,reverb:.42,attack:1.18,release:1.10,cutoff:.62,resonance:.55},flute:{master:.58,brightness:.68,reverb:.30,attack:1.0,release:.80,cutoff:1.12,resonance:.42},ocarina:{master:.56,brightness:.48,reverb:.24,attack:.78,release:.62,cutoff:.84,resonance:.54},orchestraHit:{master:.48,brightness:.62,reverb:.34,attack:.25,release:.78,cutoff:1.02,resonance:.60},fmCrystal:{master:.44,brightness:.88,reverb:.42,attack:.25,release:1.08,cutoff:1.35,resonance:.38},retroNoise:{master:.38,brightness:.72,reverb:.10,attack:.25,release:.34,cutoff:1.05,resonance:.76},coinSpark:{master:.42,brightness:.90,reverb:.24,attack:.25,release:.42,cutoff:1.30,resonance:.34},laserPluck:{master:.42,brightness:.78,reverb:.16,attack:.25,release:.38,cutoff:1.08,resonance:.86},dungeonDrone:{master:.42,brightness:.32,reverb:.50,attack:1.45,release:1.80,cutoff:.48,resonance:.72},pixelArp:{master:.40,brightness:.76,reverb:.12,attack:.25,release:.28,cutoff:1.12,resonance:.46},gameKick:{master:.45,brightness:.36,reverb:.04,attack:.25,release:.25,cutoff:.66,resonance:.42},warpTone:{master:.40,brightness:.62,reverb:.28,attack:.64,release:.72,cutoff:.92,resonance:1.16},oboe:{master:.50,brightness:.52,reverb:.18,attack:.90,release:.62,cutoff:.68,resonance:1.12},trumpet:{master:.48,brightness:.62,reverb:.16,attack:.62,release:.58,cutoff:.82,resonance:.90},strings:{master:.52,brightness:.46,reverb:.40,attack:1.55,release:1.70,cutoff:.68,resonance:.42},pad:{master:.46,brightness:.38,reverb:.58,attack:1.90,release:2.05,cutoff:.56,resonance:.48},sineSynth:{master:.55,brightness:.58,reverb:.20,attack:.75,release:.85,cutoff:1.20,resonance:.28},triangleSynth:{master:.54,brightness:.62,reverb:.18,attack:.70,release:.78,cutoff:1.08,resonance:.34},sawSynth:{master:.45,brightness:.64,reverb:.18,attack:.62,release:.72,cutoff:.92,resonance:1.10},squareSynth:{master:.44,brightness:.60,reverb:.12,attack:.55,release:.58,cutoff:.88,resonance:.78},bit8:{master:.42,brightness:.82,reverb:.08,attack:.28,release:.30,cutoff:1.35,resonance:.30},synthLead:{master:.48,brightness:.68,reverb:.24,attack:.52,release:.72,cutoff:1.08,resonance:1.35},synthBass:{master:.54,brightness:.36,reverb:.08,attack:.30,release:.48,cutoff:.52,resonance:1.55},synthPluck:{master:.50,brightness:.70,reverb:.20,attack:.26,release:.44,cutoff:.92,resonance:.88}
 };
 function noteName(n){return `${names[n%12]}${Math.floor(n/12)-1}`}function freq(n){return 440*Math.pow(2,(n-69)/12)}
 function avgVelocity(){if(!activeNotes.size)return 0;let s=0;activeNotes.forEach(velocity=>s+=velocity);return s/activeNotes.size}
 function setStatus(c,t){ui.statusDot.className='dot'+(c?` ${c}`:'');ui.statusText.textContent=t}
 function setOutputStatus(c,t){ui.outputStatusDot.className='dot'+(c?` ${c}`:'');ui.outputStatusText.textContent=t}
 function impulse(seconds=2.5,decay=2.4){const rate=ctx.sampleRate,len=rate*seconds|0,b=ctx.createBuffer(2,len,rate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay)}return b}
-async function initAudio(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();compressor=ctx.createDynamicsCompressor();analyser=ctx.createAnalyser();dryBus=ctx.createGain();wetBus=ctx.createGain();convolver=ctx.createConvolver();convolver.buffer=impulse();analyser.fftSize=2048;master.gain.value=+ui.master.value;dryBus.connect(master);wetBus.connect(convolver).connect(master);const limiter=ctx.createDynamicsCompressor();
+async function initAudio(){if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();compressor=ctx.createDynamicsCompressor();analyser=ctx.createAnalyser();dryBus=ctx.createGain();wetBus=ctx.createGain();convolver=ctx.createConvolver();convolver.buffer=impulse();analyser.fftSize=visualProfile().fftSize;master.gain.value=+ui.master.value;dryBus.connect(master);wetBus.connect(convolver).connect(master);const limiter=ctx.createDynamicsCompressor();
  limiter.threshold.value=-5;limiter.knee.value=2;limiter.ratio.value=16;limiter.attack.value=.001;limiter.release.value=.08;
  master.connect(compressor).connect(limiter).connect(analyser).connect(ctx.destination);updateReverb()}if(ctx.state==='suspended')await ctx.resume()}
 function updateReverb(){if(!dryBus)return;const w=+ui.reverb.value;dryBus.gain.value=1-w*.5;wetBus.gain.value=w}
@@ -711,22 +715,19 @@ function bagpipeChanterCents(note){
    5:-2,   // D
    7:2,    // E
    9:-16,  // F#
-   10:-12  // G
+   10:-28  // G (characteristically flat seventh)
  };
  return offsets[relative]??0;
 }
 
 function createSpecialSources(kind,n,velocity,filter,amp,now,p){
  const sources=[],extras=[];
- if(kind==='simplePiano'||kind==='simpleEPiano'){
-   const isEP=kind==='simpleEPiano';
-   const partials=isEP
-     ?[[1,1],[2,.22],[3,.075],[4,.028]]
-     :[[1,1],[2,.31],[3,.14],[4,.065],[5,.028]];
-   const decayBase=isEP?.88:1.15;
+ if(kind==='simplePiano'){
+   const partials=[[1,1],[2,.31],[3,.14],[4,.065],[5,.028]];
+   const decayBase=1.15;
    for(const [ratio,level] of partials){
      const o=ctx.createOscillator(),g=ctx.createGain();
-     o.type=ratio===1?(isEP?'sine':'triangle'):'sine';
+     o.type=ratio===1?'triangle':'sine';
      o.frequency.value=freq(n)*ratio;
      o.detune.value=0;
      g.gain.setValueAtTime(level,now);
@@ -735,14 +736,41 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
      o.start(now);
      sources.push(o);extras.push(g);
    }
-   if(isEP){
-     const tine=ctx.createOscillator(),tineGain=ctx.createGain();
-     tine.type='sine';tine.frequency.value=freq(n)*2.01;
-     tineGain.gain.setValueAtTime(.075*velocity,now);
-     tineGain.gain.exponentialRampToValueAtTime(.0001,now+.42);
-     tine.connect(tineGain).connect(filter);tine.start(now);
-     sources.push(tine);extras.push(tineGain);
+ }else if(kind==='electricPiano'){
+   const type=p.epType||'rhodes',base=freq(n),bus=ctx.createGain();
+   if(type==='rhodes'){
+     const pickup=ctx.createBiquadFilter(),bell=ctx.createBiquadFilter();
+     pickup.type='peaking';pickup.frequency.value=760;pickup.Q.value=.72;pickup.gain.value=2.4;
+     bell.type='peaking';bell.frequency.value=2650;bell.Q.value=1.05;bell.gain.value=2.2+velocity*2.1;
+     bus.gain.value=.72;bus.connect(pickup).connect(bell).connect(filter);
+     for(const [ratio,level,decay] of [[1,.92,1.6],[2,.19,.88],[3,.055,.62],[4.01,.022,.42]]){
+       const o=ctx.createOscillator(),g=ctx.createGain();o.type=ratio===1?'sine':'triangle';o.frequency.value=base*ratio;
+       g.gain.setValueAtTime(level*(.72+velocity*.42),now);g.gain.exponentialRampToValueAtTime(.0001,now+decay);
+       o.connect(g).connect(bus);o.start(now);sources.push(o);extras.push(g);
+     }
+     const tine=ctx.createOscillator(),tineGain=ctx.createGain();tine.type='sine';tine.frequency.value=base*6.02;
+     tineGain.gain.setValueAtTime(.025+velocity*.095,now);tineGain.gain.exponentialRampToValueAtTime(.0001,now+.34);
+     tine.connect(tineGain).connect(bus);tine.start(now);sources.push(tine);extras.push(tineGain,pickup,bell);
+   }else if(type==='fm'){
+     const carrier=ctx.createOscillator(),mod=ctx.createOscillator(),modDepth=ctx.createGain(),body=ctx.createGain(),sparkle=ctx.createOscillator(),sparkleGain=ctx.createGain(),presence=ctx.createBiquadFilter();
+     carrier.type='sine';carrier.frequency.value=base;mod.type='sine';mod.frequency.value=base*3.5;
+     modDepth.gain.setValueAtTime(base*(1.3+velocity*3.0),now);modDepth.gain.exponentialRampToValueAtTime(base*.035,now+.92);
+     body.gain.value=.70;mod.connect(modDepth).connect(carrier.frequency);carrier.connect(body).connect(bus);
+     sparkle.type='sine';sparkle.frequency.value=base*7.03;sparkleGain.gain.setValueAtTime(.018+velocity*.10,now);sparkleGain.gain.exponentialRampToValueAtTime(.0001,now+.46);sparkle.connect(sparkleGain).connect(bus);
+     presence.type='peaking';presence.frequency.value=3400;presence.Q.value=.86;presence.gain.value=4.2;bus.gain.value=.70;bus.connect(presence).connect(filter);
+     mod.start(now);carrier.start(now);sparkle.start(now);sources.push(mod,carrier,sparkle);extras.push(modDepth,body,sparkleGain,presence);
+   }else{
+     const real=new Float32Array(10),imag=new Float32Array(10),hs=[0,1,.46,.24,.13,.075,.042,.024,.014,.008];
+     for(let i=1;i<hs.length;i++)imag[i]=hs[i];
+     const reed=ctx.createOscillator(),reedGain=ctx.createGain(),drive=ctx.createWaveShaper(),body=ctx.createBiquadFilter(),bite=ctx.createBiquadFilter(),tremolo=ctx.createOscillator(),tremoloDepth=ctx.createGain();
+     reed.setPeriodicWave(ctx.createPeriodicWave(real,imag,{disableNormalization:false}));reed.frequency.value=base;reedGain.gain.value=.68;
+     const curve=new Float32Array(2048);for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1;curve[i]=Math.tanh(x*2.1)/Math.tanh(2.1)}drive.curve=curve;drive.oversample='2x';
+     body.type='peaking';body.frequency.value=920;body.Q.value=.82;body.gain.value=3.8;bite.type='peaking';bite.frequency.value=2450;bite.Q.value=1.0;bite.gain.value=2.5+velocity*2.0;
+     tremolo.type='sine';tremolo.frequency.value=5.2;tremoloDepth.gain.value=.035;tremolo.connect(tremoloDepth).connect(reedGain.gain);
+     reed.connect(reedGain).connect(drive).connect(body).connect(bite).connect(bus);bus.gain.value=.58;bus.connect(filter);
+     reed.start(now);tremolo.start(now);sources.push(reed,tremolo);extras.push(reedGain,drive,body,bite,tremoloDepth);
    }
+   extras.push(bus);
  }else if(kind==='acousticGuitar'||kind==='electricGuitar'||kind==='harp'||kind==='glock'||kind==='xylophone'){
    const source=ctx.createBufferSource();source.buffer=cachedInstrumentBuffer(kind,n,velocity);
    const tone=ctx.createBiquadFilter();tone.type='lowpass';tone.frequency.value=(kind==='glock'?13500:kind==='xylophone'?6800:kind==='harp'?9800:kind==='acousticGuitar'?7200:6500)*(.58+.58*(+ui.brightness.value));tone.Q.value=kind==='electricGuitar'?.48:.45;
@@ -843,9 +871,10 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
  }else if(kind==='breath'){
    const type=p.breathType||'flute';
    const oscillator=ctx.createOscillator(),toneGain=ctx.createGain(),air=ctx.createBufferSource(),airGain=ctx.createGain(),airFilter=ctx.createBiquadFilter();
+   let ocarinaFlutter=null;const ocarinaExtras=[],recorderExtras=[],shakuhachiExtras=[];
    const waveReal=new Float32Array(8),waveImag=new Float32Array(8);
    const harmonicSets={
-     recorder:[0,1,.21,.075,.028,.011,.0045,.002],
+     recorder:[0,1,.34,.18,.09,.045,.022,.011],
      flute:[0,1,.038,.009,.0025,.0008,.0003,.0001],
      shakuhachi:[0,1,.11,.038,.017,.008,.0035,.0015],
      ocarina:[0,1,.26,.095,.032,.012,.0045,.0018]
@@ -853,22 +882,66 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
    const hs=harmonicSets[type]||harmonicSets.flute;
    for(let i=1;i<hs.length;i++)waveImag[i]=hs[i];
    oscillator.setPeriodicWave(ctx.createPeriodicWave(waveReal,waveImag,{disableNormalization:false}));
-   oscillator.frequency.value=freq(n);
-   toneGain.gain.value=type==='shakuhachi'?.72:type==='recorder'?.82:type==='ocarina'?.86:.76;
+   if(type==='recorder'){
+    oscillator.frequency.setValueAtTime(freq(n)*1.012,now);
+    oscillator.frequency.exponentialRampToValueAtTime(freq(n),now+.034);
+   }else if(type==='shakuhachi'){
+    oscillator.frequency.setValueAtTime(freq(n)*.978,now);
+    oscillator.frequency.exponentialRampToValueAtTime(freq(n),now+.115);
+   }else oscillator.frequency.value=freq(n);
+   toneGain.gain.value=type==='shakuhachi'?.54:type==='recorder'?.66:type==='ocarina'?.86:.76;
    const lfo=ctx.createOscillator(),lfoGain=ctx.createGain();
    lfo.frequency.value=p.vib||4.5;lfoGain.gain.value=p.vibDepth||1.5;lfo.connect(lfoGain).connect(oscillator.detune);lfo.start(now);
    const len=ctx.sampleRate*4|0,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);
-   let smooth=0;
-   for(let i=0;i<len;i++){smooth=smooth*.92+(Math.random()*2-1)*.08;d[i]=smooth}
+   let smooth=0;const airSmoothing=type==='shakuhachi'?.56:type==='ocarina'?.72:type==='recorder'?.78:.92;
+   for(let i=0;i<len;i++){smooth=smooth*airSmoothing+(Math.random()*2-1)*(1-airSmoothing);d[i]=smooth}
    air.buffer=b;air.loop=true;
    airFilter.type='bandpass';
    airFilter.frequency.value=type==='shakuhachi'?1180:type==='recorder'?2250:type==='ocarina'?1550:2600;
    airFilter.Q.value=type==='shakuhachi'?.42:type==='ocarina'?.85:type==='flute'?.55:.75;
-   airGain.gain.value=(type==='shakuhachi'?.095:type==='recorder'?.022:type==='ocarina'?.010:type==='flute'?.032:.04)*(.55+velocity*.45);
-   oscillator.connect(toneGain).connect(filter);
-   air.connect(airFilter).connect(airGain).connect(filter);
+   airGain.gain.value=(type==='shakuhachi'?.165:type==='recorder'?.036:type==='ocarina'?.020:type==='flute'?.032:.04)*(.55+velocity*.45);
+   if(type==='recorder'){
+     const thin=ctx.createBiquadFilter(),hollow=ctx.createBiquadFilter(),plastic=ctx.createBiquadFilter(),edgeFilter=ctx.createBiquadFilter(),edgeGain=ctx.createGain();
+     thin.type='highpass';thin.frequency.value=310;thin.Q.value=.55;
+     hollow.type='peaking';hollow.frequency.value=720;hollow.Q.value=.72;hollow.gain.value=-5.2;
+     plastic.type='peaking';plastic.frequency.value=2250;plastic.Q.value=1.35;plastic.gain.value=5.6;
+     oscillator.connect(toneGain).connect(thin).connect(hollow).connect(plastic).connect(filter);
+     air.connect(airFilter).connect(airGain).connect(plastic);
+     edgeFilter.type='bandpass';edgeFilter.frequency.value=3450;edgeFilter.Q.value=.58;
+     edgeGain.gain.setValueAtTime(.075+velocity*.055,now);edgeGain.gain.exponentialRampToValueAtTime(.012,now+.065);
+     air.connect(edgeFilter).connect(edgeGain).connect(plastic);
+     recorderExtras.push(thin,hollow,plastic,edgeFilter,edgeGain);
+   }else{
+     oscillator.connect(toneGain).connect(filter);
+     air.connect(airFilter).connect(airGain).connect(filter);
+   }
+   if(type==='shakuhachi'){
+     const edgeFilter=ctx.createBiquadFilter(),edgeGain=ctx.createGain(),chuffFilter=ctx.createBiquadFilter(),chuffGain=ctx.createGain(),breathFlutter=ctx.createOscillator(),flutterDepth=ctx.createGain();
+     edgeFilter.type='bandpass';edgeFilter.frequency.value=3150;edgeFilter.Q.value=.42;
+     edgeGain.gain.setValueAtTime(.26+velocity*.09,now);edgeGain.gain.exponentialRampToValueAtTime(.105+velocity*.045,now+.19);
+     chuffFilter.type='bandpass';chuffFilter.frequency.value=720;chuffFilter.Q.value=.68;
+     chuffGain.gain.setValueAtTime(.16+velocity*.08,now);chuffGain.gain.exponentialRampToValueAtTime(.018,now+.095);
+     breathFlutter.type='sine';breathFlutter.frequency.value=7.3;flutterDepth.gain.value=.016+velocity*.012;
+     breathFlutter.connect(flutterDepth).connect(edgeGain.gain);
+     air.connect(edgeFilter).connect(edgeGain).connect(filter);air.connect(chuffFilter).connect(chuffGain).connect(filter);
+     breathFlutter.start(now);sources.push(breathFlutter);shakuhachiExtras.push(edgeFilter,edgeGain,chuffFilter,chuffGain,flutterDepth);
+   }
+   if(type==='ocarina'){
+     const edgeFilter=ctx.createBiquadFilter(),edgeGain=ctx.createGain(),flutterDepth=ctx.createGain();
+     edgeFilter.type='bandpass';edgeFilter.frequency.value=3250;edgeFilter.Q.value=.58;
+     const edgeLevel=.018+velocity*.014;
+     edgeGain.gain.setValueAtTime(.0001,now);
+     edgeGain.gain.exponentialRampToValueAtTime(edgeLevel*1.65,now+.022);
+     edgeGain.gain.exponentialRampToValueAtTime(edgeLevel,now+.14);
+     ocarinaFlutter=ctx.createOscillator();ocarinaFlutter.frequency.value=6.7;
+     flutterDepth.gain.value=edgeLevel*.18;
+     ocarinaFlutter.connect(flutterDepth).connect(edgeGain.gain);
+     air.connect(edgeFilter).connect(edgeGain).connect(filter);
+     ocarinaFlutter.start(now);ocarinaExtras.push(edgeFilter,edgeGain,flutterDepth);
+   }
    oscillator.start(now);air.start(now);
-   sources.push(oscillator,air);extras.push(toneGain,airGain,airFilter,lfo,lfoGain);
+   sources.push(oscillator,air);if(ocarinaFlutter)sources.push(ocarinaFlutter);
+   extras.push(toneGain,airGain,airFilter,lfo,lfoGain,...ocarinaExtras,...recorderExtras,...shakuhachiExtras);
  }else if(kind==='orchestraHit'){
    const chord=[1,Math.pow(2,3/12),Math.pow(2,7/12),2];
    const bus=ctx.createGain(),hitFilter=ctx.createBiquadFilter(),comp=ctx.createDynamicsCompressor();
@@ -975,6 +1048,33 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
    const source=ctx.createBufferSource(),bitFilter=ctx.createBiquadFilter();
    source.buffer=buffer;bitFilter.type='bandpass';bitFilter.frequency.value=Math.min(6800,Math.max(420,freq(n)*3));bitFilter.Q.value=1.2;
    source.connect(bitFilter).connect(filter);source.start(now);sources.push(source);extras.push(bitFilter);
+ }else if(kind==='altoSax'){
+   const base=freq(n),real=new Float32Array(15),imag=new Float32Array(15);
+   const hs=[0,1,.58,.34,.23,.15,.105,.073,.051,.036,.025,.017,.012,.008,.006];
+   for(let i=1;i<hs.length;i++)imag[i]=hs[i]*(1+velocity*.15*Math.min(i,5)/5);
+   const reed=ctx.createOscillator(),reedGain=ctx.createGain(),saturation=ctx.createWaveShaper(),form1=ctx.createBiquadFilter(),form2=ctx.createBiquadFilter(),form3=ctx.createBiquadFilter();
+   reed.setPeriodicWave(ctx.createPeriodicWave(real,imag,{disableNormalization:false}));
+   reed.frequency.setValueAtTime(base*.985,now);reed.frequency.exponentialRampToValueAtTime(base,now+.048);
+   reedGain.gain.value=.62+.13*velocity;
+   const curve=new Float32Array(4096),drive=1.7+velocity*.9;
+   for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1;curve[i]=Math.tanh(x*drive)/Math.tanh(drive)}
+   saturation.curve=curve;saturation.oversample='2x';
+   form1.type='peaking';form1.frequency.value=610;form1.Q.value=1.05;form1.gain.value=4.8;
+   form2.type='peaking';form2.frequency.value=1210;form2.Q.value=1.35;form2.gain.value=5.2;
+   form3.type='peaking';form3.frequency.value=2650;form3.Q.value=1.1;form3.gain.value=2.4+velocity*1.8;
+   const vibrato=ctx.createOscillator(),vibratoDepth=ctx.createGain();vibrato.type='sine';vibrato.frequency.value=5.15;
+   vibratoDepth.gain.setValueAtTime(.35,now);vibratoDepth.gain.linearRampToValueAtTime(2.0+velocity*1.7,now+.32);vibrato.connect(vibratoDepth).connect(reed.detune);
+   const growl=ctx.createOscillator(),growlDepth=ctx.createGain();growl.type='triangle';growl.frequency.value=27+velocity*5;growlDepth.gain.value=Math.max(0,velocity-.62)*3.8;growl.connect(growlDepth).connect(reed.detune);
+   reed.connect(reedGain).connect(saturation).connect(form1).connect(form2).connect(form3).connect(filter);
+   const len=ctx.sampleRate*4|0,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);let smooth=0;
+   for(let i=0;i<len;i++){smooth=smooth*.72+(Math.random()*2-1)*.28;d[i]=smooth}
+   const air=ctx.createBufferSource(),airFilter=ctx.createBiquadFilter(),airGain=ctx.createGain(),tongueFilter=ctx.createBiquadFilter(),tongueGain=ctx.createGain();
+   air.buffer=b;air.loop=true;airFilter.type='bandpass';airFilter.frequency.value=1550;airFilter.Q.value=.62;airGain.gain.value=.018+.025*velocity;
+   tongueFilter.type='bandpass';tongueFilter.frequency.value=2450;tongueFilter.Q.value=.75;
+   tongueGain.gain.setValueAtTime(.085+velocity*.095,now);tongueGain.gain.exponentialRampToValueAtTime(.0001,now+.055);
+   air.connect(airFilter).connect(airGain).connect(form2);air.connect(tongueFilter).connect(tongueGain).connect(form3);
+   reed.start(now);vibrato.start(now);growl.start(now);air.start(now);sources.push(reed,vibrato,growl,air);
+   extras.push(reedGain,saturation,form1,form2,form3,vibratoDepth,growlDepth,airFilter,airGain,tongueFilter,tongueGain);
  }else if(kind==='trumpet'){
    const lip=ctx.createOscillator(),lipGain=ctx.createGain(),form1=ctx.createBiquadFilter(),form2=ctx.createBiquadFilter(),form3=ctx.createBiquadFilter();
    const real=new Float32Array(12),imag=new Float32Array(12);
@@ -995,47 +1095,56 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
    const chanterH=[0,1,.58,.39,.28,.20,.145,.105,.076,.054,.039,.028,.020,.014,.010];
    for(let i=1;i<chanterH.length;i++)chanterImag[i]=chanterH[i]*(i%2?1:.82);
    const chanter=ctx.createPeriodicWave(chanterReal,chanterImag,{disableNormalization:false});
-   const cents=bagpipeChanterCents(n);
+   const cents=bagpipeChanterCents(n)+9;
 
-   // Slow pressure drift plus a smaller irregular pulse.
-   const slowLfo=ctx.createOscillator(),slowDepth=ctx.createGain();
-   slowLfo.type='sine';slowLfo.frequency.value=.23;slowDepth.gain.value=1.9;
+   // Bag pressure is mostly steady. Two slow, incommensurate movements keep
+   // long notes alive without turning into a synthesizer-like vibrato.
+   const slowLfo=ctx.createOscillator(),slowDepth=ctx.createGain(),pressureDepth=ctx.createGain(),toneDrift=ctx.createGain();
+   slowLfo.type='sine';slowLfo.frequency.value=.19;slowDepth.gain.value=1.15;pressureDepth.gain.value=.014;toneDrift.gain.value=42;
    const pulseLfo=ctx.createOscillator(),pulseDepth=ctx.createGain();
-   pulseLfo.type='triangle';pulseLfo.frequency.value=4.85;pulseDepth.gain.value=.58;
+   pulseLfo.type='triangle';pulseLfo.frequency.value=5.35;pulseDepth.gain.value=.18;
    const driftLfo=ctx.createOscillator(),driftDepth=ctx.createGain();
-   driftLfo.type='sine';driftLfo.frequency.value=.071;driftDepth.gain.value=3.4;
-   slowLfo.connect(slowDepth);pulseLfo.connect(pulseDepth);driftLfo.connect(driftDepth);
+   driftLfo.type='sine';driftLfo.frequency.value=.071;driftDepth.gain.value=2.15;
+   slowLfo.connect(slowDepth);slowLfo.connect(pressureDepth);slowLfo.connect(toneDrift);pulseLfo.connect(pulseDepth);driftLfo.connect(driftDepth);
    slowLfo.start(now);pulseLfo.start(now);driftLfo.start(now);
-   extras.push(slowLfo,slowDepth,pulseLfo,pulseDepth,driftLfo,driftDepth);
-   // Short upper grace note gives the chanter a more Celtic articulation.
-   const grace=ctx.createOscillator(),graceGain=ctx.createGain(),graceFilter=ctx.createBiquadFilter();
-   grace.setPeriodicWave(chanter);
-   grace.frequency.value=freq(n)*Math.pow(2,2/12);
-   grace.detune.value=cents-4;
-   graceGain.gain.setValueAtTime(.11*velocity,now);
-   graceGain.gain.exponentialRampToValueAtTime(.0001,now+.038);
-   graceFilter.type='bandpass';graceFilter.frequency.value=1900;graceFilter.Q.value=.8;
-   grace.connect(graceGain).connect(graceFilter).connect(filter);
-   grace.start(now);grace.stop(now+.05);
-   sources.push(grace);extras.push(graceGain,graceFilter);
+   sources.push(slowLfo,pulseLfo,driftLfo);extras.push(slowDepth,pressureDepth,toneDrift,pulseDepth,driftDepth);
+   const chanterBus=ctx.createGain(),chanterGate=ctx.createGain(),chanterFocus=ctx.createBiquadFilter(),chanterEdge=ctx.createBiquadFilter(),chanterComp=ctx.createDynamicsCompressor();
+   chanterBus.gain.value=1.10+velocity*.22;
+   chanterGate.gain.setValueAtTime(.0001,now);
+   chanterGate.gain.exponentialRampToValueAtTime(1.04,now+.009);
+   chanterGate.gain.linearRampToValueAtTime(.88,now+.085);
+   pressureDepth.connect(chanterGate.gain);
+   chanterFocus.type='peaking';chanterFocus.frequency.value=1480;chanterFocus.Q.value=.82;chanterFocus.gain.value=3.2;
+   toneDrift.connect(chanterFocus.frequency);
+   chanterEdge.type='peaking';chanterEdge.frequency.value=3050;chanterEdge.Q.value=1.05;chanterEdge.gain.value=3.8;
+   chanterComp.threshold.value=-16;chanterComp.knee.value=5;chanterComp.ratio.value=2.4;chanterComp.attack.value=.006;chanterComp.release.value=.075;
+   chanterBus.connect(chanterFocus).connect(chanterEdge).connect(chanterComp).connect(filter);
+   extras.push(chanterBus,chanterGate,chanterFocus,chanterEdge,chanterComp);
 
-   // Chanter: narrow reed spectrum with scale-dependent intonation.
-   for(const [ratio,level,det] of [[1,.66,0],[2,.21,-1.2],[3,.13,1.4],[4,.062,-1.8],[5,.026,1.1]]){
-     const o=ctx.createOscillator(),g=ctx.createGain(),reed=ctx.createBiquadFilter();
+   // A quick high cut followed by a lower tap imitates finger ornamentation;
+   // the chanter itself does not fade in like an ordinary wind instrument.
+   for(const ornament of [{semi:7,start:0,duration:.019,level:.18},{semi:-2,start:.020,duration:.026,level:.105}]){
+     const grace=ctx.createOscillator(),graceGain=ctx.createGain(),graceFilter=ctx.createBiquadFilter();
+     grace.setPeriodicWave(chanter);grace.frequency.value=freq(n)*Math.pow(2,ornament.semi/12);grace.detune.value=cents;
+     graceGain.gain.setValueAtTime(.0001,now);graceGain.gain.setValueAtTime(ornament.level*velocity,now+ornament.start+.001);graceGain.gain.exponentialRampToValueAtTime(.0001,now+ornament.start+ornament.duration);
+     graceFilter.type='bandpass';graceFilter.frequency.value=2050;graceFilter.Q.value=.72;
+     grace.connect(graceGain).connect(graceFilter).connect(chanterBus);grace.start(now);grace.stop(now+ornament.start+ornament.duration+.008);
+     sources.push(grace);extras.push(graceGain,graceFilter);
+   }
+
+   // Two closely coupled reeds create a small acoustic beat. The initial
+   // sharpness settles rapidly as pressure stabilises in the reed seat.
+   for(const [ratio,level,det] of [[1,.90,0],[1.00115,.14,.45]]){
+     const o=ctx.createOscillator(),g=ctx.createGain();
      o.setPeriodicWave(chanter);
      o.frequency.value=freq(n)*ratio;
-     o.detune.value=cents+det;
+     o.detune.setValueAtTime(cents+det+17,now);
+     o.detune.linearRampToValueAtTime(cents+det,now+.052);
      g.gain.value=level;
-     reed.type='peaking';
-     reed.frequency.value=Math.min(3900,1180+freq(n)*1.42);
-     reed.Q.value=1.05;
-     reed.gain.value=5.4;
-     slowDepth.connect(o.detune);driftDepth.connect(o.detune);pulseDepth.connect(o.detune);driftDepth.connect(o.detune);
-     const upper=ctx.createBiquadFilter();
-     upper.type='peaking';upper.frequency.value=2750;upper.Q.value=1.18;upper.gain.value=4.0;
-     o.connect(g).connect(reed).connect(upper).connect(filter);
+     slowDepth.connect(o.detune);driftDepth.connect(o.detune);pulseDepth.connect(o.detune);
+     o.connect(g).connect(chanterGate).connect(chanterBus);
      o.start(now);
-     sources.push(o);extras.push(reed,upper);
+     sources.push(o);extras.push(g);
    }
 
    // Fixed A drones. They do not follow every played note, which creates
@@ -1043,7 +1152,7 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
    const droneFundamentals=[110,220,164.81];
    for(let d=0;d<droneFundamentals.length;d++){
      const base=droneFundamentals[d];
-     for(const [ratio,level,det] of [[1,d===0?.15:d===1?.10:.035,-3],[2,d===0?.065:d===1?.045:.018,1.5],[3,.020,-1]]){
+     for(const [ratio,level,det] of [[1,d===0?.12:d===1?.075:.027,-3],[2,d===0?.050:d===1?.034:.014,1.5],[3,.015,-1]]){
        const o=ctx.createOscillator(),g=ctx.createGain(),droneFilter=ctx.createBiquadFilter();
        o.type='sawtooth';
        o.frequency.value=base*ratio;
@@ -1393,13 +1502,41 @@ function setTheme(root,vel){const p=preset[ui.instrument.value],light=document.d
 function animateTheme(){for(let i=0;i<theme.current.length;i++)theme.current[i]+=(theme.target[i]-theme.current[i])*.009;const c=theme.current,rgb=i=>`rgb(${c[i]|0},${c[i+1]|0},${c[i+2]|0})`;document.documentElement.style.setProperty('--bg-a',rgb(0));document.documentElement.style.setProperty('--bg-b',rgb(3));document.documentElement.style.setProperty('--bg-c',rgb(6));document.documentElement.style.setProperty('--accent',rgb(9));document.documentElement.style.setProperty('--accent2',rgb(12));requestAnimationFrame(animateTheme)}
 function applyTheme(mode){document.documentElement.dataset.theme=mode;ui.themeButton.textContent=mode==='light'?'☾':'☀';localStorage.setItem('midi-theme',mode);updateHarmony()}
 function setupKnobs(){document.querySelectorAll('.knob').forEach(knob=>{const input=$(knob.dataset.for),out=$(`${knob.dataset.for}Out`),min=+input.min,max=+input.max,step=+input.step||.01;const render=()=>{const p=(+input.value-min)/(max-min);knob.style.setProperty('--p',p);knob.style.setProperty('--angle',`${-135+p*270}deg`);out.textContent=`${Math.round((+input.value)/(max===1?1:(knob.dataset.for==='reverb'?.75:1))*100)}%`};let y=0,v=0,drag=false;knob.addEventListener('pointerdown',e=>{drag=true;y=e.clientY;v=+input.value;knob.setPointerCapture(e.pointerId)});knob.addEventListener('pointermove',e=>{if(!drag)return;input.value=Math.min(max,Math.max(min,v+(y-e.clientY)*(max-min)/180));input.dispatchEvent(new Event('input'))});['pointerup','pointercancel'].forEach(ev=>knob.addEventListener(ev,()=>drag=false));knob.addEventListener('wheel',e=>{e.preventDefault();input.value=Math.min(max,Math.max(min,+input.value+(e.deltaY<0?step:-step)));input.dispatchEvent(new Event('input'))},{passive:false});input.addEventListener('input',render);render()})}
+const visualProfiles=[
+ {name:'low',fps:15,fftSize:512,pointStep:4,maxDpr:1},
+ {name:'balanced',fps:24,fftSize:1024,pointStep:2,maxDpr:1.35},
+ {name:'high',fps:30,fftSize:2048,pointStep:1,maxDpr:2}
+];
+const visualHardware={cores:navigator.hardwareConcurrency||4,memory:navigator.deviceMemory||8,saveData:!!navigator.connection?.saveData,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,mobile:matchMedia('(pointer: coarse)').matches};
+const visualQualityLimit=visualHardware.saveData||visualHardware.reducedMotion||visualHardware.cores<=4||visualHardware.memory<=4?0:visualHardware.mobile||visualHardware.cores<=8||visualHardware.memory<=8?1:2;
+let visualQualityIndex=visualQualityLimit;
+const visualPerformance={lastRender:0,windowStart:performance.now(),work:0,frames:0,late:0,stableWindows:0};
+function visualProfile(){return visualProfiles[visualQualityIndex]}
+function visualPixelRatio(){return Math.min(visualProfile().maxDpr,Math.max(1,window.devicePixelRatio||1))}
+function setVisualQuality(index){
+ const next=Math.max(0,Math.min(visualQualityLimit,index));if(next===visualQualityIndex)return;
+ visualQualityIndex=next;softenedWaveform=null;softenedSpectrum=null;waveformData=null;spectrumData=null;
+ if(analyser)analyser.fftSize=visualProfile().fftSize;
+ resizeScope();
+}
+function recordVisualPerformance(work,frameGap,now){
+ const profile=visualProfile(),budget=1000/profile.fps;visualPerformance.work+=work;visualPerformance.frames++;
+ if(frameGap>budget*1.8)visualPerformance.late++;
+ if(now-visualPerformance.windowStart<2200)return;
+ const average=visualPerformance.work/Math.max(1,visualPerformance.frames),lateRatio=visualPerformance.late/Math.max(1,visualPerformance.frames);
+ if((average>budget*.42||lateRatio>.28)&&visualQualityIndex>0){setVisualQuality(visualQualityIndex-1);visualPerformance.stableWindows=0}
+ else if(average<budget*.16&&lateRatio<.06&&!visualHardware.saveData&&!visualHardware.reducedMotion){
+  visualPerformance.stableWindows++;if(visualPerformance.stableWindows>=3&&visualQualityIndex<visualQualityLimit){setVisualQuality(visualQualityIndex+1);visualPerformance.stableWindows=0}
+ }else visualPerformance.stableWindows=0;
+ visualPerformance.windowStart=now;visualPerformance.work=0;visualPerformance.frames=0;visualPerformance.late=0;
+}
 function resizeScope(){
  const canvas=ui.scope;
  if(!canvas)return false;
  const rect=canvas.getBoundingClientRect();
  const cssWidth=Math.max(320,Math.round(rect.width||canvas.parentElement?.clientWidth||960));
  const cssHeight=Math.max(280,Math.round(rect.height||360));
- const d=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+ const d=visualPixelRatio();
  const width=Math.round(cssWidth*d),height=Math.round(cssHeight*d);
  if(canvas.width!==width)canvas.width=width;
  if(canvas.height!==height)canvas.height=height;
@@ -1436,7 +1573,7 @@ function drawVisualizationGrid(g,w,h,centerLine=false){
   g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
  }
 }
-let softenedWaveform=null;
+let softenedWaveform=null,waveformData=null;
 function drawWaveform(g,w,h){
  drawVisualizationGrid(g,w,h,true);
  if(!analyser){
@@ -1447,16 +1584,51 @@ function drawWaveform(g,w,h){
   g.textAlign='start';
   return;
  }
- const data=new Uint8Array(analyser.fftSize);
- analyser.getByteTimeDomainData(data);
+ if(!waveformData||waveformData.length!==analyser.fftSize)waveformData=new Uint8Array(analyser.fftSize);
+ const data=waveformData;analyser.getByteTimeDomainData(data);
  if(!softenedWaveform||softenedWaveform.length!==data.length)softenedWaveform=Float32Array.from(data);
  for(let i=0;i<data.length;i++)softenedWaveform[i]+=(data[i]-softenedWaveform[i])*.16;
  g.strokeStyle=canvasColor('--viz-line','#e58a2f');g.lineWidth=3.25;g.beginPath();
- for(let i=0;i<data.length;i++){
+ const step=visualProfile().pointStep;
+ for(let i=0;i<data.length;i+=step){
   const x=i/(data.length-1)*w,y=softenedWaveform[i]/255*h;
   i?g.lineTo(x,y):g.moveTo(x,y);
  }
+ if((data.length-1)%step)g.lineTo(w,softenedWaveform[data.length-1]/255*h);
  g.stroke();
+}
+let softenedSpectrum=null,spectrumData=null;
+function drawFrequencySpectrum(g,w,h){
+ g.fillStyle=canvasColor('--viz-bg','#111111');g.fillRect(0,0,w,h);
+ const grid=cssRgb('--viz-grid',[58,51,41]),line=cssRgb('--viz-line',[255,159,67]),secondary=cssRgb('--viz-secondary',[255,209,102]);
+ const minFreq=20,maxFreq=Math.min(20000,(ctx?.sampleRate||44100)/2),logRange=Math.log(maxFreq/minFreq);
+ g.strokeStyle=rgba(grid,.72);g.fillStyle=rgba(secondary,.62);g.lineWidth=1;g.font='700 11px system-ui';
+ for(const frequency of [50,100,200,500,1000,2000,5000,10000,20000]){
+  if(frequency>maxFreq)continue;
+  const x=Math.log(frequency/minFreq)/logRange*w;
+  g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke();
+  const label=frequency>=1000?`${frequency/1000}k`:`${frequency}`;
+  g.fillText(label,Math.min(w-24,Math.max(3,x+4)),h-7);
+ }
+ for(let level=1;level<4;level++){const y=h*level/4;g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}
+ if(!analyser){
+  g.fillStyle=canvasColor('--muted','#777777');g.font='800 18px system-ui';g.textAlign='center';
+  g.fillText('Enable Output to display the FFT spectrum',w/2,h/2-14);
+  g.fillText('出力を有効にすると周波数スペクトラムを表示します',w/2,h/2+14);g.textAlign='start';return;
+ }
+ if(!spectrumData||spectrumData.length!==analyser.frequencyBinCount)spectrumData=new Uint8Array(analyser.frequencyBinCount);
+ const data=spectrumData;analyser.getByteFrequencyData(data);
+ const width=Math.ceil(w),step=visualProfile().pointStep;
+ if(!softenedSpectrum||softenedSpectrum.length!==width+1)softenedSpectrum=new Float32Array(width+1);
+ for(let x=0;x<=width;x+=step){
+  const frequency=minFreq*Math.exp(x/Math.max(1,w)*logRange),bin=Math.min(data.length-1,Math.round(frequency/(ctx.sampleRate/2)*(data.length-1))),target=data[bin]/255;
+  softenedSpectrum[x]+=(target-softenedSpectrum[x])*.24;
+ }
+ if(width%step){const bin=data.length-1,target=data[bin]/255;softenedSpectrum[width]+=(target-softenedSpectrum[width])*.24}
+ const fill=g.createLinearGradient(0,0,0,h);fill.addColorStop(0,rgba(secondary,.44));fill.addColorStop(1,rgba(line,.035));
+ g.beginPath();g.moveTo(0,h);for(let x=0;x<=width;x+=step)g.lineTo(x,h-14-softenedSpectrum[x]*(h-26));if(width%step)g.lineTo(w,h-14-softenedSpectrum[width]*(h-26));g.lineTo(w,h);g.closePath();g.fillStyle=fill;g.fill();
+ g.beginPath();for(let x=0;x<=width;x+=step){const y=h-14-softenedSpectrum[x]*(h-26);x?g.lineTo(x,y):g.moveTo(x,y)}if(width%step)g.lineTo(w,h-14-softenedSpectrum[width]*(h-26));
+ g.strokeStyle=rgba(line,.96);g.lineWidth=2.4;g.stroke();
 }
 function cssRgb(name,fallback){
  const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1644,12 +1816,17 @@ function drawPixelReactiveObject(g,w,h,now){
  g.imageSmoothingEnabled=true;
 }
 function drawScope(now=performance.now()){
+ const adaptive=visualMode==='waveform'||visualMode==='frequency',profile=visualProfile();
+ if(document.hidden){requestAnimationFrame(drawScope);return}
+ if(adaptive&&visualPerformance.lastRender&&now-visualPerformance.lastRender<1000/profile.fps-1){requestAnimationFrame(drawScope);return}
+ const frameGap=visualPerformance.lastRender?now-visualPerformance.lastRender:0,started=performance.now();
+ if(adaptive)visualPerformance.lastRender=now;
  try{
    if(!resizeScope()){requestAnimationFrame(drawScope);return}
    const g=safeCanvasContext();
    if(!g){return}
    if(ui.canvasError)ui.canvasError.hidden=true;
-   const d=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+   const d=visualPixelRatio();
    const w=ui.scope.width/d,h=ui.scope.height/d;
    g.setTransform(d,0,0,d,0,0);
    if(visualMode!=='object')g.clearRect(0,0,w,h);
@@ -1658,6 +1835,7 @@ function drawScope(now=performance.now()){
    g.fillRect(0,0,w,h);
    g.globalAlpha=1;
    if(visualMode==='waveform')drawWaveform(g,w,h);
+   else if(visualMode==='frequency')drawFrequencySpectrum(g,w,h);
    else if(visualMode==='midi')drawMidiHistory(g,w,h,now);
    else if(ui.instrument.value==='bit8')drawPixelReactiveObject(g,w,h,now);
    else drawReactiveObject(g,w,h,now);
@@ -1665,6 +1843,7 @@ function drawScope(now=performance.now()){
    console.error('Visualization error',error);
    if(ui.canvasError){ui.canvasError.hidden=false;ui.canvasError.textContent='Visualization error — open DevTools Console'}
  }
+ if(adaptive)recordVisualPerformance(performance.now()-started,frameGap,now);
  requestAnimationFrame(drawScope)
 }
 ui.enableButton.addEventListener('click',toggleMidiInput);ui.outputEnableButton.addEventListener('click',toggleAudioOutput);ui.panicButton.addEventListener('click',panic);ui.keyboardInputButton.addEventListener('click',()=>setKeyboardInput(!keyboardInputEnabled));ui.midiInput.addEventListener('change',connectInput);ui.audioOutput.addEventListener('change',()=>selectAudioOutput());navigator.mediaDevices?.addEventListener?.('devicechange',refreshAudioOutputs);ui.themeButton.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light'));function applySoundControlPreset(value){const values=soundControlPreset[value];if(!values)return;for(const [id,val] of Object.entries(values)){const input=ui[id];if(!input)continue;input.value=val;input.dispatchEvent(new Event('input',{bubbles:true}))}}
@@ -1735,7 +1914,7 @@ document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener
  setMysteryFullscreen(false);
  visualMode=button.dataset.view;
  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===button));
- ui.viewCaption.textContent=visualMode==='waveform'?'Live audio output':visualMode==='midi'?'Recent MIDI note history':'???';
+ ui.viewCaption.textContent=visualMode==='waveform'?'Live audio output':visualMode==='frequency'?'Live FFT frequency spectrum':visualMode==='midi'?'Recent MIDI note history':'???';
  updateMysteryInteraction();
 }));ui.master.addEventListener('input',()=>{if(master&&ctx)master.gain.setTargetAtTime(+ui.master.value,ctx.currentTime,.02)});ui.reverb.addEventListener('input',updateReverb);window.addEventListener('resize',()=>requestAnimationFrame(resizeScope));
 window.addEventListener('blur',panic);
