@@ -446,7 +446,7 @@ body.mystery-view-open{overflow:hidden}
     <section class="panel card">
       <div class="sound-controls-head"><h2>Sound Controls</h2><button id="resetSoundButton" class="reset-sound-button" type="button">Reset</button></div>
       <select id="instrument" class="instrument-select" hidden>
-        <option value="piano">Cheap Piano</option><option value="epiano">Electric Piano</option><option value="glock">Glockenspiel</option><option value="xylophone">Xylophone</option><option value="organ">Organ</option><option value="accordion">Melodica</option><option value="harmonica">Harmonica</option><option value="bagpipe">Bagpipe</option><option value="acousticGuitar">Acoustic Guitar</option><option value="electricClean">Electric Guitar — Clean</option><option value="electricOverdrive">Electric Guitar — Overdrive</option><option value="electricHighGain">Electric Guitar — High Gain</option><option value="clarinet">Clarinet</option><option value="sax">Alto Sax</option><option value="recorder">Recorder</option><option value="shakuhachi">Bamboo Flute</option><option value="flute">Flute</option><option value="ocarina">Ocarina</option><option value="orchestraHit">Orchestra Hit</option><option value="fmCrystal">Digital Crystal</option><option value="retroNoise">Bit Noise</option><option value="coinSpark">Coin Spark</option><option value="laserPluck">Laser Pluck</option><option value="dungeonDrone">Dungeon Drone</option><option value="pixelArp">Pixel Arpeggio</option><option value="gameKick">Arcade Kick</option><option value="warpTone">Warp Tone</option><option value="oboe">Oboe</option><option value="trumpet">Trumpet</option><option value="strings">Strings</option><option value="pad">Ambient Pad</option><option value="sineSynth">Sine</option><option value="triangleSynth">Triangle</option><option value="sawSynth">Sawtooth</option><option value="squareSynth">Square</option><option value="bit8">8-Bit</option><option value="synthLead">Synth Lead</option><option value="synthBass">Synth Bass</option><option value="synthPluck">Synth Pluck</option>
+        <option value="piano">Cheap Piano</option><option value="epiano">Electric Piano</option><option value="glock">Glockenspiel</option><option value="xylophone">Xylophone</option><option value="organ">Organ</option><option value="accordion">Melodica</option><option value="harmonica">Harmonica</option><option value="bagpipe">Bagpipe</option><option value="acousticGuitar">Acoustic Guitar</option><option value="electricClean">Electric Guitar — Clean</option><option value="electricOverdrive">Electric Guitar — Overdrive</option><option value="electricHighGain">Electric Guitar — High Gain</option><option value="harp">Harp</option><option value="clarinet">Clarinet</option><option value="sax">Alto Sax</option><option value="recorder">Recorder</option><option value="shakuhachi">Bamboo Flute</option><option value="flute">Flute</option><option value="ocarina">Ocarina</option><option value="orchestraHit">Orchestra Hit</option><option value="fmCrystal">Digital Crystal</option><option value="retroNoise">Bit Noise</option><option value="coinSpark">Coin Spark</option><option value="laserPluck">Laser Pluck</option><option value="dungeonDrone">Dungeon Drone</option><option value="pixelArp">Pixel Arpeggio</option><option value="gameKick">Arcade Kick</option><option value="warpTone">Warp Tone</option><option value="oboe">Oboe</option><option value="trumpet">Trumpet</option><option value="strings">Strings</option><option value="pad">Ambient Pad</option><option value="sineSynth">Sine</option><option value="triangleSynth">Triangle</option><option value="sawSynth">Sawtooth</option><option value="squareSynth">Square</option><option value="bit8">8-Bit</option><option value="synthLead">Synth Lead</option><option value="synthBass">Synth Bass</option><option value="synthPluck">Synth Pluck</option>
       </select>
       <div class="knob-grid">
         <div class="knob-control"><div class="knob-label">Volume</div><input id="master" class="hidden-range" type="range" min="0" max="2" value="0.7" step="0.01"><div class="knob" data-for="master" tabindex="0"></div><div class="knob-value" id="masterOut">70%</div></div>
@@ -477,6 +477,7 @@ const $=id=>document.getElementById(id);
 const ui={enableButton:$('enableButton'),outputEnableButton:$('outputEnableButton'),panicButton:$('panicButton'),keyboardInputButton:$('keyboardInputButton'),keyboardInputHint:$('keyboardInputHint'),midiInput:$('midiInput'),audioOutput:$('audioOutput'),midiChannel:$('midiChannel'),statusDot:$('statusDot'),statusText:$('statusText'),outputStatusDot:$('outputStatusDot'),outputStatusText:$('outputStatusText'),themeButton:$('themeButton'),instrument:$('instrument'),instrumentCategory:$('instrumentCategory'),instrumentCategoryButtons:$('instrumentCategoryButtons'),instrumentHeroSelect:$('instrumentHeroSelect'),instrumentHeroName:$('instrumentHeroName'),master:$('master'),brightness:$('brightness'),reverb:$('reverb'),attack:$('attack'),release:$('release'),cutoff:$('cutoff'),resonance:$('resonance'),resetSoundButton:$('resetSoundButton'),attackNote:$('attackNote'),keyboard:$('keyboard'),scope:$('scope'),visualStage:$('visualStage'),mysteryFullscreenButton:$('mysteryFullscreenButton'),canvasError:$('canvasError'),viewCaption:$('viewCaption'),chordName:$('chordName'),chordRoot:$('chordRoot'),chordNotes:$('chordNotes'),previousChord:$('previousChord'),alternateChords:$('alternateChords'),chordHistory:$('chordHistory')};
 let ctx=null,master=null,compressor=null,analyser=null,dryBus=null,wetBus=null,convolver=null,midiAccess=null,selectedInput=null,midiInputEnabled=false,audioOutputEnabled=false,keyboardInputEnabled=false,keyboardOctave=4,previousChordName='',lastChord={name:'',root:null,pcs:[],played:''},visualMode='waveform';
 const voices=new Map(),activeNotes=new Map(),heldPointers=new Map(),computerKeyNotes=new Map(),history=[],midiTrail=[];
+const guitarStrum={lastAt:0,count:0,firstNote:0};
 const reactive={nodes:[],blobs:[],pitchPoints:new Map(),lastTime:0,energy:0,targetEnergy:0,roughness:.35,targetRoughness:.35,rotation:0,angularVelocity:0,hueMemory:0,growth:0,targetGrowth:0,chordQuality:'single',chordSince:0,previousRoot:null,transitionInterval:0,transitionPulse:0,eventSeed:1,lastNoteAt:0,speedEnergy:0};
 const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const profiles=[
@@ -505,7 +506,7 @@ const instrumentGroups={
  strings:[
   ['acousticGuitar','Acoustic Guitar'],['electricClean','Electric Guitar — Clean'],
   ['electricOverdrive','Electric Guitar — Overdrive'],['electricHighGain','Electric Guitar — High Gain'],
-  ['strings','Strings']
+  ['harp','Harp'],['strings','Strings']
  ],
  percussion:[
   ['glock','Glockenspiel'],['xylophone','Round Xylophone'],['orchestraHit','Orchestra Hit']
@@ -551,6 +552,7 @@ const preset={
  electricClean:{label:'Electric Guitar — Clean',model:'electricGuitar',guitarMode:'clean',parts:[],attackControl:false,a:.001,d:.82,s:.10,r:.48,cut:7200,q:.55,noise:.003,vib:0,outputGain:.80,theme:[24,46]},
  electricOverdrive:{label:'Electric Guitar — Overdrive',model:'electricGuitar',guitarMode:'overdrive',parts:[],attackControl:false,a:.001,d:1.02,s:.15,r:.58,cut:5900,q:.78,noise:.004,vib:0,outputGain:.72,theme:[18,42]},
  electricHighGain:{label:'Electric Guitar — High Gain',model:'electricGuitar',guitarMode:'highgain',parts:[],attackControl:false,a:.001,d:1.12,s:.18,r:.64,cut:4700,q:.88,noise:.005,vib:0,outputGain:.66,theme:[12,36]},
+ harp:{label:'Harp',model:'harp',parts:[],attackControl:false,a:.001,d:1.8,s:.012,r:1.6,cut:9200,q:.34,noise:0,vib:0,outputGain:.82,theme:[42,58]},
  clarinet:{label:'Clarinet',parts:[[1,'square',.62],[3,'sine',.22],[5,'sine',.1]],a:.07,d:.16,s:.76,r:.3,cut:3400,q:2.6,noise:.025,vib:5.1,vibDepth:3,formant:[850,1650],outputGain:0.82,theme:[30,50]},
  sax:{label:'Alto Sax',parts:[[1,'custom',.68],[1.003,'custom',.18],[2,'sine',.08]],custom:[0,1,.62,.42,.26,.19,.13,.09,.06,.04],a:.055,d:.18,s:.78,r:.34,cut:4700,q:2.5,noise:.035,vib:5.4,vibDepth:8,formant:[650,1250],outputGain:0.7,theme:[18,38]},
  trumpet:{label:'Trumpet',model:'trumpet',parts:[],a:.028,d:.16,s:.74,r:.20,cut:6100,q:1.15,noise:.008,vib:5.1,vibDepth:1.7,outputGain:.66,theme:[18,42]},
@@ -582,7 +584,7 @@ const preset={
  synthPluck:{label:'Synth Pluck',attackControl:false,parts:[[1,'triangle',.72],[2,'sine',.2],[3,'sine',.08]],a:.002,d:.3,s:.02,r:.18,cut:4800,q:2.2,noise:.01,vib:0,outputGain:0.7,theme:[42,58]}
 };
 const soundControlPreset={
- piano:{master:.56,brightness:.56,reverb:.14,attack:.25,release:.52,cutoff:.92,resonance:.26},epiano:{master:.54,brightness:.50,reverb:.18,attack:.25,release:.66,cutoff:.82,resonance:.30},glock:{master:.52,brightness:.88,reverb:.46,attack:1,release:1.38,cutoff:1.35,resonance:.35},xylophone:{master:.58,brightness:.48,reverb:.16,attack:1,release:.48,cutoff:.78,resonance:.30},organ:{master:.58,brightness:.55,reverb:.22,attack:.88,release:.48,cutoff:1.05,resonance:.28},accordion:{master:.58,brightness:.56,reverb:.08,attack:.92,release:.48,cutoff:.76,resonance:.46},harmonica:{master:.50,brightness:.58,reverb:.12,attack:.55,release:.52,cutoff:.90,resonance:.62},bagpipe:{master:.45,brightness:.48,reverb:.18,attack:.92,release:.72,cutoff:.72,resonance:.52},acousticGuitar:{master:.62,brightness:.72,reverb:.22,attack:.38,release:.72,cutoff:1.02,resonance:.48},electricClean:{master:.58,brightness:.62,reverb:.06,attack:.30,release:.42,cutoff:.92,resonance:.38},electricOverdrive:{master:.54,brightness:.54,reverb:.045,attack:.30,release:.48,cutoff:.80,resonance:.48},electricHighGain:{master:.50,brightness:.48,reverb:.035,attack:.30,release:.52,cutoff:.68,resonance:.58},clarinet:{master:.58,brightness:.48,reverb:.20,attack:.92,release:.66,cutoff:.72,resonance:.82},sax:{master:.52,brightness:.58,reverb:.20,attack:.80,release:.72,cutoff:.78,resonance:.95},recorder:{master:.58,brightness:.70,reverb:.18,attack:.76,release:.52,cutoff:.98,resonance:.58},shakuhachi:{master:.60,brightness:.42,reverb:.42,attack:1.18,release:1.10,cutoff:.62,resonance:.55},flute:{master:.58,brightness:.68,reverb:.30,attack:1.0,release:.80,cutoff:1.12,resonance:.42},ocarina:{master:.56,brightness:.48,reverb:.24,attack:.78,release:.62,cutoff:.84,resonance:.54},orchestraHit:{master:.48,brightness:.62,reverb:.34,attack:.25,release:.78,cutoff:1.02,resonance:.60},fmCrystal:{master:.44,brightness:.88,reverb:.42,attack:.25,release:1.08,cutoff:1.35,resonance:.38},retroNoise:{master:.38,brightness:.72,reverb:.10,attack:.25,release:.34,cutoff:1.05,resonance:.76},coinSpark:{master:.42,brightness:.90,reverb:.24,attack:.25,release:.42,cutoff:1.30,resonance:.34},laserPluck:{master:.42,brightness:.78,reverb:.16,attack:.25,release:.38,cutoff:1.08,resonance:.86},dungeonDrone:{master:.42,brightness:.32,reverb:.50,attack:1.45,release:1.80,cutoff:.48,resonance:.72},pixelArp:{master:.40,brightness:.76,reverb:.12,attack:.25,release:.28,cutoff:1.12,resonance:.46},gameKick:{master:.45,brightness:.36,reverb:.04,attack:.25,release:.25,cutoff:.66,resonance:.42},warpTone:{master:.40,brightness:.62,reverb:.28,attack:.64,release:.72,cutoff:.92,resonance:1.16},oboe:{master:.50,brightness:.52,reverb:.18,attack:.90,release:.62,cutoff:.68,resonance:1.12},trumpet:{master:.48,brightness:.62,reverb:.16,attack:.62,release:.58,cutoff:.82,resonance:.90},strings:{master:.52,brightness:.46,reverb:.40,attack:1.55,release:1.70,cutoff:.68,resonance:.42},pad:{master:.46,brightness:.38,reverb:.58,attack:1.90,release:2.05,cutoff:.56,resonance:.48},sineSynth:{master:.55,brightness:.58,reverb:.20,attack:.75,release:.85,cutoff:1.20,resonance:.28},triangleSynth:{master:.54,brightness:.62,reverb:.18,attack:.70,release:.78,cutoff:1.08,resonance:.34},sawSynth:{master:.45,brightness:.64,reverb:.18,attack:.62,release:.72,cutoff:.92,resonance:1.10},squareSynth:{master:.44,brightness:.60,reverb:.12,attack:.55,release:.58,cutoff:.88,resonance:.78},bit8:{master:.42,brightness:.82,reverb:.08,attack:.28,release:.30,cutoff:1.35,resonance:.30},synthLead:{master:.48,brightness:.68,reverb:.24,attack:.52,release:.72,cutoff:1.08,resonance:1.35},synthBass:{master:.54,brightness:.36,reverb:.08,attack:.30,release:.48,cutoff:.52,resonance:1.55},synthPluck:{master:.50,brightness:.70,reverb:.20,attack:.26,release:.44,cutoff:.92,resonance:.88}
+ piano:{master:.56,brightness:.56,reverb:.14,attack:.25,release:.52,cutoff:.92,resonance:.26},epiano:{master:.54,brightness:.50,reverb:.18,attack:.25,release:.66,cutoff:.82,resonance:.30},glock:{master:.52,brightness:.88,reverb:.46,attack:1,release:1.38,cutoff:1.35,resonance:.35},xylophone:{master:.58,brightness:.48,reverb:.16,attack:1,release:.48,cutoff:.78,resonance:.30},organ:{master:.58,brightness:.55,reverb:.22,attack:.88,release:.48,cutoff:1.05,resonance:.28},accordion:{master:.58,brightness:.56,reverb:.08,attack:.92,release:.48,cutoff:.76,resonance:.46},harmonica:{master:.50,brightness:.58,reverb:.12,attack:.55,release:.52,cutoff:.90,resonance:.62},bagpipe:{master:.45,brightness:.48,reverb:.18,attack:.92,release:.72,cutoff:.72,resonance:.52},acousticGuitar:{master:.62,brightness:.72,reverb:.22,attack:.38,release:.72,cutoff:1.02,resonance:.48},electricClean:{master:.58,brightness:.62,reverb:.06,attack:.30,release:.42,cutoff:.92,resonance:.38},electricOverdrive:{master:.54,brightness:.54,reverb:.045,attack:.30,release:.48,cutoff:.80,resonance:.48},electricHighGain:{master:.50,brightness:.48,reverb:.035,attack:.30,release:.52,cutoff:.68,resonance:.58},harp:{master:.54,brightness:.72,reverb:.38,attack:1,release:1.15,cutoff:1.15,resonance:.28},clarinet:{master:.58,brightness:.48,reverb:.20,attack:.92,release:.66,cutoff:.72,resonance:.82},sax:{master:.52,brightness:.58,reverb:.20,attack:.80,release:.72,cutoff:.78,resonance:.95},recorder:{master:.58,brightness:.70,reverb:.18,attack:.76,release:.52,cutoff:.98,resonance:.58},shakuhachi:{master:.60,brightness:.42,reverb:.42,attack:1.18,release:1.10,cutoff:.62,resonance:.55},flute:{master:.58,brightness:.68,reverb:.30,attack:1.0,release:.80,cutoff:1.12,resonance:.42},ocarina:{master:.56,brightness:.48,reverb:.24,attack:.78,release:.62,cutoff:.84,resonance:.54},orchestraHit:{master:.48,brightness:.62,reverb:.34,attack:.25,release:.78,cutoff:1.02,resonance:.60},fmCrystal:{master:.44,brightness:.88,reverb:.42,attack:.25,release:1.08,cutoff:1.35,resonance:.38},retroNoise:{master:.38,brightness:.72,reverb:.10,attack:.25,release:.34,cutoff:1.05,resonance:.76},coinSpark:{master:.42,brightness:.90,reverb:.24,attack:.25,release:.42,cutoff:1.30,resonance:.34},laserPluck:{master:.42,brightness:.78,reverb:.16,attack:.25,release:.38,cutoff:1.08,resonance:.86},dungeonDrone:{master:.42,brightness:.32,reverb:.50,attack:1.45,release:1.80,cutoff:.48,resonance:.72},pixelArp:{master:.40,brightness:.76,reverb:.12,attack:.25,release:.28,cutoff:1.12,resonance:.46},gameKick:{master:.45,brightness:.36,reverb:.04,attack:.25,release:.25,cutoff:.66,resonance:.42},warpTone:{master:.40,brightness:.62,reverb:.28,attack:.64,release:.72,cutoff:.92,resonance:1.16},oboe:{master:.50,brightness:.52,reverb:.18,attack:.90,release:.62,cutoff:.68,resonance:1.12},trumpet:{master:.48,brightness:.62,reverb:.16,attack:.62,release:.58,cutoff:.82,resonance:.90},strings:{master:.52,brightness:.46,reverb:.40,attack:1.55,release:1.70,cutoff:.68,resonance:.42},pad:{master:.46,brightness:.38,reverb:.58,attack:1.90,release:2.05,cutoff:.56,resonance:.48},sineSynth:{master:.55,brightness:.58,reverb:.20,attack:.75,release:.85,cutoff:1.20,resonance:.28},triangleSynth:{master:.54,brightness:.62,reverb:.18,attack:.70,release:.78,cutoff:1.08,resonance:.34},sawSynth:{master:.45,brightness:.64,reverb:.18,attack:.62,release:.72,cutoff:.92,resonance:1.10},squareSynth:{master:.44,brightness:.60,reverb:.12,attack:.55,release:.58,cutoff:.88,resonance:.78},bit8:{master:.42,brightness:.82,reverb:.08,attack:.28,release:.30,cutoff:1.35,resonance:.30},synthLead:{master:.48,brightness:.68,reverb:.24,attack:.52,release:.72,cutoff:1.08,resonance:1.35},synthBass:{master:.54,brightness:.36,reverb:.08,attack:.30,release:.48,cutoff:.52,resonance:1.55},synthPluck:{master:.50,brightness:.70,reverb:.20,attack:.26,release:.44,cutoff:.92,resonance:.88}
 };
 function noteName(n){return `${names[n%12]}${Math.floor(n/12)-1}`}function freq(n){return 440*Math.pow(2,(n-69)/12)}
 function avgVelocity(){if(!activeNotes.size)return 0;let s=0;activeNotes.forEach(velocity=>s+=velocity);return s/activeNotes.size}
@@ -601,7 +603,7 @@ function cachedInstrumentBuffer(kind,n,velocity){
  const bucket=Math.max(1,Math.min(5,Math.round(velocity*5)));
  const key=`${kind}:${n}:${bucket}`;
  if(sampleCache.has(key))return sampleCache.get(key);
- const sr=ctx.sampleRate,f=freq(n),seconds=kind==='glock'?5.5:kind==='xylophone'?2.6:kind==='acousticGuitar'?4.8:7.5;
+ const sr=ctx.sampleRate,f=freq(n),seconds=kind==='glock'?5.5:kind==='xylophone'?2.6:kind==='acousticGuitar'?4.8:kind==='harp'?6.2:7.5;
  const len=Math.max(1,Math.floor(sr*seconds)),buffer=ctx.createBuffer(1,len,sr),data=buffer.getChannelData(0),vel=.30+bucket*.14;
  if(kind==='glock'||kind==='xylophone'){
    const ratios=kind==='xylophone'?[1,2.01,3.96,5.92]:[1,2.756,5.404,8.933,13.34];
@@ -618,6 +620,21 @@ function cachedInstrumentBuffer(kind,n,velocity){
        ?(Math.sin(2*Math.PI*180*t)*.022+Math.sin(2*Math.PI*310*t)*.012)*Math.exp(-t*3.4)
        :0;
      data[i]=(x*(kind==='xylophone'?.32:.42)+mallet+roundBody)*vel;
+   }
+ }else if(kind==='harp'){
+   const partials=[1,2.002,3.006,4.014,5.026,6.043,7.065,8.094];
+   const amps=[1,.43,.24,.145,.086,.052,.032,.019];
+   const soundboard=[118,235,420];
+   for(let i=0;i<len;i++){
+     const t=i/sr;let string=0,body=0;
+     for(let h=0;h<partials.length;h++){
+       const decay=.72+h*.29;
+       string+=Math.sin(2*Math.PI*f*partials[h]*t+h*.31)*amps[h]*Math.exp(-t*decay);
+     }
+     for(let m=0;m<soundboard.length;m++)body+=Math.sin(2*Math.PI*soundboard[m]*t+m*.8)*(.032/(m+1))*Math.exp(-t*(1.35+m*.42));
+     const finger=(Math.random()*2-1)*Math.exp(-t*145)*(.075+.055*vel);
+     const nail=Math.sin(2*Math.PI*Math.min(5600,f*9.7)*t)*.035*Math.exp(-t*52);
+     data[i]=(string*.38+body+finger+nail)*vel;
    }
  }else if(kind==='acousticGuitar'){
    const partials=[1,2.001,3.006,4.015,5.028,6.045,7.068,8.096,9.13];
@@ -640,22 +657,32 @@ function cachedInstrumentBuffer(kind,n,velocity){
      data[i]=(x*.30+body+pick+fretNoise)*vel;
    }
  }else{
-   // Electric string source: mostly fundamental. The amplifier generates
-   // the harmonic spectrum, avoiding several separately audible pitches.
-   const modeDecay=1.0;
-   const partials=[1,2.001,3.004];
-   const amps=[1,.13,.038];
+   // Electric string source: a short noise impulse circulates through a
+   // tuned delay line. This produces the characteristic pitched "ping"
+   // and evolving string spectrum before it reaches the amp model.
+   const period=Math.max(2,Math.round(sr/f-.5)),ring=new Float32Array(period),raw=new Float32Array(period);
+   for(let i=0;i<period;i++)raw[i]=Math.random()*2-1;
+   const pickOffset=Math.max(1,Math.round(period*.18));
+   for(let i=0;i<period;i++)ring[i]=raw[i]*.78-raw[(i+pickOffset)%period]*.42;
+   const cycleDamping=Math.exp(-1.18/f);
+   let ringIndex=0;
    for(let i=0;i<len;i++){
-     const t=i/sr;let x=0;
-     for(let h=0;h<partials.length;h++){
-       const decay=Math.exp(-t*(modeDecay+h*.52));
-       x+=Math.sin(2*Math.PI*f*partials[h]*t+h*.18)*amps[h]*decay;
-     }
-     // Broadband pick transient only; no octave-below oscillator.
-     const pick=(Math.random()*2-1)*Math.exp(-t*170)*(.18+.13*vel);
-     // Short fundamental punch, not a separate subharmonic.
-     const fundamentalPunch=Math.sin(2*Math.PI*f*t)*.16*Math.exp(-t*2.2);
-     data[i]=(x*.42+pick+fundamentalPunch)*vel;
+     const t=i/sr,string=ring[ringIndex],next=ring[(ringIndex+1)%period];
+     ring[ringIndex]=(string+next)*.5*cycleDamping;
+     ringIndex=(ringIndex+1)%period;
+     // A hard, short bridge transient keeps the start of every electric
+     // guitar note distinct even after the amplifier adds compression.
+     const pick=(Math.random()*2-1)*Math.exp(-t*220)*(.28+.18*vel);
+     const bridgeSnap=Math.sin(2*Math.PI*f*3.97*t)*.12*Math.exp(-t*42);
+     const fundamentalPunch=Math.sin(2*Math.PI*f*t)*.16*Math.exp(-t*1.35);
+     // Slightly inharmonic upper-string resonances add the metallic
+     // "peen" without creating a second perceived note.
+     const stringPing=(
+       Math.sin(2*Math.PI*f*2.002*t+.24)*.13*Math.exp(-t*1.8)+
+       Math.sin(2*Math.PI*f*3.997*t+.58)*.065*Math.exp(-t*2.7)+
+       Math.sin(2*Math.PI*f*5.991*t+.91)*.028*Math.exp(-t*3.6)
+     );
+     data[i]=(string*.62+fundamentalPunch+stringPing+pick+bridgeSnap)*vel;
    }
  }
  let max=0;for(let i=0;i<len;i++)max=Math.max(max,Math.abs(data[i]));const scale=max>.001?.88/max:1;for(let i=0;i<len;i++)data[i]*=scale;
@@ -716,32 +743,58 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
      tine.connect(tineGain).connect(filter);tine.start(now);
      sources.push(tine);extras.push(tineGain);
    }
- }else if(kind==='acousticGuitar'||kind==='electricGuitar'||kind==='glock'||kind==='xylophone'){
+ }else if(kind==='acousticGuitar'||kind==='electricGuitar'||kind==='harp'||kind==='glock'||kind==='xylophone'){
    const source=ctx.createBufferSource();source.buffer=cachedInstrumentBuffer(kind,n,velocity);
-   const tone=ctx.createBiquadFilter();tone.type='lowpass';tone.frequency.value=(kind==='glock'?13500:kind==='xylophone'?6800:kind==='acousticGuitar'?7200:6500)*(.58+.58*(+ui.brightness.value));tone.Q.value=kind==='electricGuitar'?.48:.45;
+   const tone=ctx.createBiquadFilter();tone.type='lowpass';tone.frequency.value=(kind==='glock'?13500:kind==='xylophone'?6800:kind==='harp'?9800:kind==='acousticGuitar'?7200:6500)*(.58+.58*(+ui.brightness.value));tone.Q.value=kind==='electricGuitar'?.48:.45;
    if(kind==='electricGuitar'){
      const mode=p.guitarMode||'highgain';
-     const pre=ctx.createGain(),shaper=ctx.createWaveShaper(),post=ctx.createGain(),cab=ctx.createBiquadFilter(),low=ctx.createBiquadFilter(),lowMid=ctx.createBiquadFilter(),mid=ctx.createBiquadFilter(),bite=ctx.createBiquadFilter(),comp=ctx.createDynamicsCompressor();
+     const chordAmount=Math.max(0,Math.min(1,(activeNotes.size-1)/3));
+     // Keep the heavy pedal/depth treatment below C3. C3–C4 receives a
+     // separate definition band so pitch remains readable in dense chords.
+     const lowRegister=Math.max(0,Math.min(1,(48-n)/8));
+     const definitionRegister=Math.max(0,Math.min(1,(n-45)/3,(63-n)/3));
+     const pedalHighpass=ctx.createBiquadFilter(),pedalMid=ctx.createBiquadFilter(),pre=ctx.createGain(),shaper=ctx.createWaveShaper(),post=ctx.createGain(),cabHighpass=ctx.createBiquadFilter(),cab=ctx.createBiquadFilter(),low=ctx.createBiquadFilter(),thump=ctx.createBiquadFilter(),lowMid=ctx.createBiquadFilter(),mid=ctx.createBiquadFilter(),definition=ctx.createBiquadFilter(),bite=ctx.createBiquadFilter(),presence=ctx.createBiquadFilter(),comp=ctx.createDynamicsCompressor();
      const settings={
-       clean:{pre:1.18,drive:1.18,post:.62,low:1.8,lowMid:1.0,mid:.4,bite:.5,cab:7600,ratio:2.0,close:.24},
-       overdrive:{pre:4.8,drive:3.1,post:.28,low:4.2,lowMid:3.4,mid:2.0,bite:1.2,cab:5900,ratio:3.4,close:.19},
-       highgain:{pre:13+velocity*13,drive:6.2+velocity*6.5,post:.14,low:7.0,lowMid:6.2,mid:3.2,bite:1.6,cab:4700,ratio:4.7,close:.16}
+       clean:{pre:1.18,lowDrive:.14,pedalMid:1.0,drive:1.18,definition:1.2,definitionDriveCut:.04,post:.62,low:1.2,depth:1.8,thump:2.0,lowMid:-2.4,mid:-1.4,midFreq:780,bite:2.6,biteFreq:2700,presence:1.2,cab:7200,ratio:2.0,close:.12,pick:.18,pickFreq:2850},
+       overdrive:{pre:4.8,lowDrive:.36,pedalMid:2.8,drive:3.1,definition:3.0,definitionDriveCut:.12,post:.28,low:2.0,depth:3.8,thump:4.8,lowMid:-1.2,mid:1.8,midFreq:1050,bite:2.8,biteFreq:2850,presence:1.0,cab:6000,ratio:3.4,close:.08,pick:.25,pickFreq:3250},
+       highgain:{pre:13+velocity*13,lowDrive:.58,pedalMid:4.0,drive:6.2+velocity*6.5,definition:5.0,definitionDriveCut:.20,post:.14,low:3.6,depth:5.4,thump:7.0,lowMid:-5.2,mid:-3.8,midFreq:900,bite:4.4,biteFreq:3100,presence:2.8,cab:5600,ratio:4.7,close:.04,pick:.32,pickFreq:3650}
      }[mode];
-     pre.gain.value=settings.pre;
-     const curve=new Float32Array(8192),drive=settings.drive;
+     pedalHighpass.type='highpass';pedalHighpass.frequency.value=55+lowRegister*(mode==='clean'?10:25);pedalHighpass.Q.value=.65;
+     pedalMid.type='peaking';pedalMid.frequency.value=720;pedalMid.Q.value=.82;pedalMid.gain.value=settings.pedalMid*lowRegister;
+     const chordDriveCut=mode==='clean'?.08:mode==='overdrive'?.15:.24;
+     pre.gain.value=settings.pre*(1+settings.lowDrive*lowRegister)*(1-settings.definitionDriveCut*definitionRegister)*(1-chordDriveCut*chordAmount);
+     const curve=new Float32Array(8192),drive=settings.drive*(1-settings.definitionDriveCut*.7*definitionRegister);
      for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1;curve[i]=Math.tanh(x*drive)/Math.tanh(drive)}
-     shaper.curve=curve;shaper.oversample=mode==='clean'?'2x':'4x';post.gain.value=settings.post;
-     low.type='lowshelf';low.frequency.value=145;low.gain.value=settings.low;
-     lowMid.type='peaking';lowMid.frequency.value=390;lowMid.Q.value=.55;lowMid.gain.value=settings.lowMid;
-     mid.type='peaking';mid.frequency.value=920;mid.Q.value=.62;mid.gain.value=settings.mid;
-     bite.type='peaking';bite.frequency.value=2450;bite.Q.value=.82;bite.gain.value=settings.bite;
+     shaper.curve=curve;shaper.oversample=mode==='clean'?'2x':'4x';post.gain.value=settings.post*(1-lowRegister*.08);
+     low.type='lowshelf';low.frequency.value=145;low.gain.value=settings.low+settings.depth*lowRegister;
+     thump.type='peaking';thump.frequency.value=108+lowRegister*18;thump.Q.value=.86;thump.gain.value=settings.thump*lowRegister;
+     lowMid.type='peaking';lowMid.frequency.value=360;lowMid.Q.value=.62;lowMid.gain.value=settings.lowMid;
+     mid.type='peaking';mid.frequency.value=settings.midFreq;mid.Q.value=.72;mid.gain.value=settings.mid;
+     const chordDefinition=mode==='clean'?.8:mode==='overdrive'?2.0:3.4;
+     definition.type='peaking';definition.frequency.value=Math.max(900,Math.min(1350,freq(n)*5));definition.Q.value=.88;definition.gain.value=settings.definition*definitionRegister+chordDefinition*chordAmount;
+     bite.type='peaking';bite.frequency.value=settings.biteFreq;bite.Q.value=.88;bite.gain.value=settings.bite;
+     presence.type='peaking';presence.frequency.value=4100;presence.Q.value=.72;presence.gain.value=settings.presence;
+     cabHighpass.type='highpass';cabHighpass.frequency.value=72;cabHighpass.Q.value=.55;
      cab.type='lowpass';cab.frequency.value=settings.cab;cab.Q.value=.42;
      comp.threshold.value=mode==='clean'?-12:-22;comp.knee.value=9;comp.ratio.value=settings.ratio;comp.attack.value=.002;comp.release.value=.09;
-     source.connect(tone).connect(pre).connect(shaper).connect(post).connect(low).connect(lowMid).connect(mid).connect(bite).connect(cab).connect(comp).connect(filter);
+     source.connect(tone).connect(pedalHighpass).connect(pedalMid).connect(pre).connect(shaper).connect(post).connect(low).connect(thump).connect(lowMid).connect(mid).connect(definition).connect(bite).connect(presence).connect(cabHighpass).connect(cab).connect(comp).connect(filter);
      const close=ctx.createGain(),closeFilter=ctx.createBiquadFilter();
      close.gain.value=settings.close;closeFilter.type='highpass';closeFilter.frequency.value=85;
-     source.connect(closeFilter).connect(close).connect(filter);
-     extras.push(close,closeFilter,pre,shaper,post,low,lowMid,mid,bite,cab,comp);
+     source.connect(closeFilter).connect(close).connect(cabHighpass);
+     // Parallel pick path stays outside the saturated amp chain so the
+     // articulation is not flattened on overdrive and high-gain presets.
+     const pickLength=Math.max(1,Math.floor(ctx.sampleRate*.045)),pickBuffer=ctx.createBuffer(1,pickLength,ctx.sampleRate),pickData=pickBuffer.getChannelData(0);
+     for(let i=0;i<pickLength;i++){const t=i/ctx.sampleRate;pickData[i]=(Math.random()*2-1)*Math.exp(-t*105)}
+     const pickSource=ctx.createBufferSource(),pickHighpass=ctx.createBiquadFilter(),pickBand=ctx.createBiquadFilter(),pickGain=ctx.createGain();
+     pickSource.buffer=pickBuffer;
+     pickHighpass.type='highpass';pickHighpass.frequency.value=1050;
+     pickBand.type='bandpass';pickBand.frequency.value=settings.pickFreq;pickBand.Q.value=.72;
+     pickGain.gain.setValueAtTime(settings.pick*(.72+velocity*.48),now);
+     pickGain.gain.exponentialRampToValueAtTime(.0001,now+.042);
+     pickSource.connect(pickHighpass).connect(pickBand).connect(pickGain).connect(cabHighpass);
+     pickSource.start(now);
+     sources.push(pickSource);
+     extras.push(close,closeFilter,pedalHighpass,pedalMid,pre,shaper,post,low,thump,lowMid,mid,definition,bite,presence,cabHighpass,cab,comp,pickHighpass,pickBand,pickGain);
    }else source.connect(tone).connect(filter);
    source.start(now);sources.push(source);
  }else if(kind==='harmonica'){
@@ -1020,6 +1073,23 @@ function createSpecialSources(kind,n,velocity,filter,amp,now,p){
  }
  return {sources,extras};
 }
+function guitarStrumDelay(p,n){
+ if(p.model!=='acousticGuitar'&&p.model!=='electricGuitar')return 0;
+ const timestamp=performance.now();
+ if(timestamp-guitarStrum.lastAt>72){guitarStrum.count=0;guitarStrum.firstNote=n}else guitarStrum.count++;
+ guitarStrum.lastAt=timestamp;
+ const pitchTravel=Math.max(0,n-guitarStrum.firstNote)*.00045;
+ return Math.min(.042,guitarStrum.count*.008+pitchTravel);
+}
+function updateGuitarChordPans(){
+ if(!ctx||typeof ctx.createStereoPanner!=='function')return;
+ const guitarVoices=[...voices.entries()].filter(([,voice])=>voice.stringPan).sort(([a],[b])=>a-b);
+ const center=(guitarVoices.length-1)/2;
+ guitarVoices.forEach(([,voice],index)=>{
+   const pan=guitarVoices.length===1?0:(index-center)/Math.max(1,center)*.24;
+   voice.stringPan.pan.setTargetAtTime(pan,ctx.currentTime,.006);
+ });
+}
 function startNote(n,velocity=.8){
  stopNote(n,true);
  activeNotes.set(n,velocity);
@@ -1027,15 +1097,21 @@ function startNote(n,velocity=.8){
  setKey(n,true);
  updateHarmony();
  if(!ctx||!audioOutputEnabled)return;
- const p=preset[ui.instrument.value],now=ctx.currentTime,amp=ctx.createGain(),filter=ctx.createBiquadFilter();
+ const p=preset[ui.instrument.value],guitarVoice=p.model==='acousticGuitar'||p.model==='electricGuitar',now=ctx.currentTime+guitarStrumDelay(p,n),amp=ctx.createGain(),filter=ctx.createBiquadFilter();
  filter.type='lowpass';filter.Q.value=p.q*(+ui.resonance.value);
  filter.frequency.value=p.cut*(+ui.cutoff.value)*(.45+.55*(+ui.brightness.value))*(.75+.45*velocity);
- const peak=Math.max(.0001,.2*velocity),attack=p.a*(p.attackControl===false?1:+ui.attack.value);
+ const chordSize=guitarVoice?activeNotes.size:1,chordLevel=guitarVoice?1/Math.sqrt(1+Math.max(0,chordSize-1)*.24):1;
+ const peak=Math.max(.0001,.2*velocity*chordLevel),attack=p.a*(p.attackControl===false?1:+ui.attack.value);
  amp.gain.setValueAtTime(.0001,now);
  amp.gain.exponentialRampToValueAtTime(peak,now+attack);
  amp.gain.exponentialRampToValueAtTime(Math.max(.0001,peak*p.s),now+attack+p.d);
- filter.connect(amp);amp.connect(dryBus);amp.connect(wetBus);
- const oscillators=[],extras=[];
+ const oscillators=[],extras=[];let stringPan=null;
+ filter.connect(amp);
+ if(guitarVoice&&typeof ctx.createStereoPanner==='function'){
+   stringPan=ctx.createStereoPanner();
+   stringPan.pan.value=0;
+   amp.connect(stringPan);stringPan.connect(dryBus);stringPan.connect(wetBus);extras.push(stringPan);
+ }else{amp.connect(dryBus);amp.connect(wetBus)}
  let lfo=null,noise=null;
  if(p.model){
    const special=createSpecialSources(p.model,n,velocity,filter,amp,now,p);
@@ -1049,7 +1125,8 @@ function startNote(n,velocity=.8){
    for(const [ratio,type,level] of p.parts){const o=ctx.createOscillator(),g=ctx.createGain();if(type==='custom')o.setPeriodicWave(makePeriodic(p.custom));else o.type=type;o.frequency.value=freq(n)*ratio;g.gain.value=level;if(lfo)lfoGain.connect(o.detune);o.connect(g).connect(filter);o.start(now);oscillators.push(o)}
    if(p.noise){const len=ctx.sampleRate*4|0,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1);noise=ctx.createBufferSource();const ng=ctx.createGain(),nf=ctx.createBiquadFilter();noise.buffer=b;nf.type='highpass';nf.frequency.value=700;ng.gain.value=p.noise*velocity;noise.connect(nf).connect(ng).connect(filter);noise.start(now)}
  }
- voices.set(n,{velocity,p,amp,oscillators,lfo,noise,extras});
+ voices.set(n,{velocity,p,amp,oscillators,lfo,noise,extras,stringPan});
+ if(guitarVoice)updateGuitarChordPans();
 }
 function stopNote(n,immediate=false){
  const voice=voices.get(n);
@@ -1065,6 +1142,7 @@ function stopNote(n,immediate=false){
   }
  }
  voices.delete(n);
+ if(voice?.stringPan)updateGuitarChordPans();
  activeNotes.delete(n);
  setKey(n,false);
  updateHarmony();
@@ -1074,6 +1152,7 @@ function panic(){
  notes.forEach(note=>stopNote(note,true));
  heldPointers.clear();
  computerKeyNotes.clear();
+ guitarStrum.lastAt=0;guitarStrum.count=0;
 }
 function recordMidiNote(note,velocity){
  const now=performance.now();
